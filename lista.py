@@ -16,13 +16,14 @@ def lista(fullPath) :
       if cell_value == None:
         break
 
-      is_number = isinstance(cell_value, (int, float))
-
+      QTDE = worksheetMaterial.cell(row=row, column=15).value
+      QTDE = f"{QTDE:.1f}" if isinstance(QTDE, (int, float)) else QTDE
+      
       material = {
         'POS' : worksheetMaterial.cell(row=row, column=12).value,
         'descricao' : worksheetMaterial.cell(row=row, column=13).value,
         'unidade' : worksheetMaterial.cell(row=row, column=14).value,
-        'QTDE' : f"{cell_value:.1f}" if is_number else cell_value,
+        'QTDE' : QTDE,
         'material' : worksheetMaterial.cell(row=row, column=16).value,
         'PesoTotal' : f"{worksheetMaterial.cell(row=row, column=17).value:.1f}"
       }
@@ -88,7 +89,7 @@ def lista(fullPath) :
           insert.add_attrib("VERNICIATURA-EST", 0)
 
     mtext = msp.add_mtext(
-      text= "\A1;" + elemento,
+      text= "\\A1;" + elemento,
       dxfattribs={
           "insert": (103.742, 585.407, 0),  
           "char_height": 25,  
