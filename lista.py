@@ -15,11 +15,14 @@ def lista(fullPath) :
       cell_value = worksheetMaterial.cell(row=row, column=12).value
       if cell_value == None:
         break
+
+      is_number = isinstance(cell_value, (int, float))
+
       material = {
         'POS' : worksheetMaterial.cell(row=row, column=12).value,
         'descricao' : worksheetMaterial.cell(row=row, column=13).value,
         'unidade' : worksheetMaterial.cell(row=row, column=14).value,
-        'QTDE' : f"{worksheetMaterial.cell(row=row, column=15).value:.1f}",
+        'QTDE' : f"{cell_value:.1f}" if is_number else cell_value,
         'material' : worksheetMaterial.cell(row=row, column=16).value,
         'PesoTotal' : f"{worksheetMaterial.cell(row=row, column=17).value:.1f}"
       }
