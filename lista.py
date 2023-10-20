@@ -45,7 +45,7 @@ def lista(fullPath) :
         'PesoTotal' : f"{worksheetPeca.cell(row=row, column=12).value:.1f}"
       }
       PecaList.append(peca)
-    
+
     doc = ezdxf.readfile(fatherPath + '/BLOCO-BRANCO.dxf')
     msp = doc.modelspace()
       
@@ -70,8 +70,9 @@ def lista(fullPath) :
     bloco_original = doc.blocks.get('REDECAM-DISTINTA_monolingua')
 
     if bloco_original :
+      posForBlock = posForBlock + 13
       for indice, objeto in enumerate(PecaList):
-          pos = posForBlock + 13 + 6 * indice
+          pos = posForBlock + 6 * indice
           insert = msp.add_blockref(bloco_original.name, insert=(0, pos, 0))
           insert.add_attrib("MARCA", objeto["cod"])
           insert.add_attrib("DESCRIZIONE-IT", objeto["descricao"])
@@ -87,18 +88,82 @@ def lista(fullPath) :
           insert.add_attrib("CICLO-VERN-EST", 0)
           insert.add_attrib("VERNICIATURA-INT", 0)
           insert.add_attrib("VERNICIATURA-EST", 0)
+      posForBlock = posForBlock + 6 * indice
+
+    #Pega o Peso Total do Desenho
+    total_weight = 0.0
+    for item in PecaList:
+        total_weight += float(item['PesoTotal'])
+
+    #Pega Informações do Material
+    materiais_metro = set()
+    materiais_metro_quadrado = set()
+
+    # Itere pela lista de dados e concatene o material com base na unidade
+    for item in MaterialList:
+        if item['unidade'] == 'm':
+            materiais_metro.add(item['material'])
+        elif item['unidade'] == 'm²':
+            materiais_metro_quadrado.add(item['material'])
+
+    material_metro = " / ".join(materiais_metro)
+    material_metro_quadrado = " / ".join(materiais_metro_quadrado)
+
+    #Insere as Notas
+    attrib_properties = { 
+      "height": 3,  
+      "style": "Standard",
+      "rotation": 0,
+      "layer" : "TESTI",
+      "width": 0.8,
+      "insert": (0, 0, 0)
+    }
+
+    def adicionar_texto(texto, insert):
+      attrib_properties["insert"] = insert
+      msp.add_text(text=texto, dxfattribs=attrib_properties)
+    
+    posForBlock += 12
+    adicionar_texto("  OTHERWISE WHERE INDICATED.", (5, posForBlock, 0))
+    posForBlock += 5
+    adicionar_texto("- ALL BEND RADIUS ARE EQUAL TO THE VALUE OF THE THICKNESS OF THE SHEET", (5, posForBlock, 0))
+    posForBlock += 7
+    adicionar_texto("  EXCEPT THOSE SHOWED BY #, ASSEMBLED OR WELDED TO THE PART", (5, posForBlock, 0))
+    posForBlock += 5
+    adicionar_texto("- THE BOLTS AND NUTS IN THE TABLE MUST BE DISPATCHED LOOSE", (5, posForBlock, 0))
+    posForBlock += 7
+    adicionar_texto("- ALL IDENTICAL PARTS MUST HAVE THE SAME MARK", (5, posForBlock, 0))
+    posForBlock += 7
+    adicionar_texto("- ALL COMPONENTS TO BE FORWARDED LOOSE MUST BE IDENTIFIED BY A MARK TAG", (5, posForBlock, 0))
+    posForBlock += 7
+    adicionar_texto("  ON THE PART INDICATED IN THE DRAWING", (5, posForBlock, 0))
+    posForBlock += 5
+    adicionar_texto("- THE COMPONENTS SHOWED BY # MUST BE ASSEMBLED IN THE WORKSHOP", (5, posForBlock, 0))
+    posForBlock += 7
+    adicionar_texto("- %%UIMPORTANT:%%U  PRE-ASSEMBLY IN WORK-SHOP", (5, posForBlock, 0))
+    posForBlock += 7
+    adicionar_texto("-     = BOLT INDICATED IN OTHER DRAWING", (5, posForBlock, 0))
+    posForBlock += 7
+    adicionar_texto("- FOR CONSTRUCTION AND SUPPLY GENERAL NOTES, SEE SPECIFICATION \"SR-R1-01\"", (5, posForBlock, 0))
+    posForBlock += 7
+    adicionar_texto("- REFERENCE DRAWINGS: ___ ÷ ___", (5, posForBlock, 0))
+    posForBlock += 7
+    adicionar_texto("- FOR ASSEMBLY DRAWING SEE DWG No.:  ___", (5, posForBlock, 0))
+    posForBlock += 7
+
+    # Exiba o material em diferentes unidades
 
     mtext = msp.add_mtext(
       text= "\\A1;" + elemento,
       dxfattribs={
-          "insert": (103.742, 585.407, 0),  
-          "char_height": 25,  
-          "width": 0,  
-          "style": "Standard",
-          "rotation": 0,
-          "color": 4,
-          "layer" : "QUOTE",
-          "attachment_point": 5
+        "insert": (103.742, 585.407, 0),  
+        "char_height": 25,  
+        "width": 0,  
+        "style": "Standard",
+        "rotation": 0,
+        "color": 4,
+        "layer" : "QUOTE",
+        "attachment_point": 5
       }
       )
     
