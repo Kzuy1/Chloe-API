@@ -7,8 +7,13 @@ import zipfile
 def lista(fullPath) :
   workbook = openpyxl.load_workbook(fullPath, data_only= True)
   fatherPath = os.path.abspath(".")
+  fileName = os.path.splitext(os.path.basename(fullPath))[0]
 
-  def writeFiles(elemento):
+  zipFile = fatherPath + '/list/'+ fileName +'.zip'
+  with zipfile.ZipFile(zipFile, 'w', compression=zipfile.ZIP_DEFLATED) as myzip:
+   myzip.write(fatherPath + '/BLOCO-BRANCO.dxf', arcname='BLOCO-BRANCO.dxf')
+
+  def writeFiles(elemento, index):
     worksheetMaterial = workbook[elemento + ' - MATERIAL']
     MaterialList = []
 
@@ -47,17 +52,32 @@ def lista(fullPath) :
       }
       PecaList.append(peca)
 
-    doc = ezdxf.readfile(fatherPath + '/BLOCO-BRANCO.dxf')
+    doc = ezdxf.readfile(fatherPath + "/list/" + fileName + '.dxf')
     msp = doc.modelspace()
-      
-    bloco_material = doc.blocks.get('EMB_LISTA_DE_MATERIAL')
 
-    posForBlock = None
+    posForYBlock = 0
+    posForXBlock = 270 * index
+
+    msp.add_lwpolyline([(posForXBlock, 0, 0), (posForXBlock, 574, 0), (posForXBlock+180, 574, 0), (posForXBlock+180, 0, 0), (posForXBlock, 0, 0)])
+
+    blocoLegenda = doc.blocks.get('REDECAM-TITOLO-TAVOLA')
+    if blocoLegenda :
+      msp.add_blockref(blocoLegenda.name, insert=(posForXBlock + 180, posForYBlock, 0))
+      posForYBlock += 148
+    
+    blocoRevisao = doc.blocks.get('REDE-DISTINTA-REVISIONE')
+    if blocoRevisao :
+      for i in range(4) :
+        blocoRevisaoInsert = msp.add_blockref(blocoRevisao.name, insert=(posForXBlock + 180, posForYBlock, 0))
+        blocoRevisaoInsert.add_attrib("REV-N", i)
+        posForYBlock += 7
+
+    bloco_material = doc.blocks.get('EMB_LISTA_DE_MATERIAL')
     if bloco_material :
-      for indice, objeto in enumerate(MaterialList):
-          pos = 196 + 7 * indice
-          posForBlock = pos
-          insert = msp.add_blockref(bloco_material.name, insert=(0, pos, 0))
+      posForYBlock += 13
+      for objeto in MaterialList:
+          posForYBlock += 7
+          insert = msp.add_blockref(bloco_material.name, insert=(posForXBlock, posForYBlock, 0))
           insert.add_attrib("POSICAO", objeto["POS"])
           insert.add_attrib("DESCRICAO", objeto["descricao"])
           insert.add_attrib("UNIDADE", objeto["unidade"])
@@ -65,16 +85,15 @@ def lista(fullPath) :
           insert.add_attrib("MATERIAL", objeto["material"])
           insert.add_attrib("PESO", objeto["PesoTotal"])
 
-    msp.add_blockref('EMB_LISTA_DE_MATERIAL_DESCRITIVO_ING', insert=(0, 182, 0))
-    msp.add_blockref('EMB_LISTA_DE_MATERIAL_INFO_ING', insert=(0, posForBlock, 0))
+    msp.add_blockref('EMB_LISTA_DE_MATERIAL_DESCRITIVO_ING', insert=(posForXBlock, 182, 0))
+    msp.add_blockref('EMB_LISTA_DE_MATERIAL_INFO_ING', insert=(posForXBlock, posForYBlock, 0))
 
-    bloco_original = doc.blocks.get('REDECAM-DISTINTA_monolingua')
-
-    if bloco_original :
-      posForBlock = posForBlock + 13
-      for indice, objeto in enumerate(PecaList):
-          pos = posForBlock + 6 * indice
-          insert = msp.add_blockref(bloco_original.name, insert=(0, pos, 0))
+    blocoBranco = doc.blocks.get('REDECAM-DISTINTA_monolingua')
+    if blocoBranco :
+      posForYBlock += 7
+      for objeto in PecaList:
+          posForYBlock += 6
+          insert = msp.add_blockref(blocoBranco.name, insert=(posForXBlock, posForYBlock, 0))
           insert.add_attrib("MARCA", objeto["cod"])
           insert.add_attrib("DESCRIZIONE-IT", objeto["descricao"])
           insert.add_attrib("DESCRIZIONE-IN-R1", objeto["descricao"])
@@ -89,7 +108,6 @@ def lista(fullPath) :
           insert.add_attrib("CICLO-VERN-EST", 0)
           insert.add_attrib("VERNICIATURA-INT", 0)
           insert.add_attrib("VERNICIATURA-EST", 0)
-      posForBlock = posForBlock + 6 * indice
 
     #Pega o Peso Total do Desenho
     total_weight = 0.0
@@ -125,67 +143,67 @@ def lista(fullPath) :
       attrib_properties["insert"] = insert
       msp.add_text(text=texto, dxfattribs=attrib_properties)
     
-    posForBlock += 12
-    adicionar_texto("  OTHERWISE WHERE INDICATED.", (5, posForBlock, 0))
+    posForYBlock += 12
+    adicionar_texto("  OTHERWISE WHERE INDICATED.", (posForXBlock + 5, posForYBlock, 0))
 
-    posForBlock += 5
-    adicionar_texto("- ALL BEND RADIUS ARE EQUAL TO THE VALUE OF THE THICKNESS OF THE SHEET", (5, posForBlock, 0))
+    posForYBlock += 5
+    adicionar_texto("- ALL BEND RADIUS ARE EQUAL TO THE VALUE OF THE THICKNESS OF THE SHEET", (posForXBlock + 5, posForYBlock, 0))
 
-    posForBlock += 7
-    adicionar_texto("  EXCEPT THOSE SHOWED BY #, ASSEMBLED OR WELDED TO THE PART", (5, posForBlock, 0))
+    posForYBlock += 7
+    adicionar_texto("  EXCEPT THOSE SHOWED BY #, ASSEMBLED OR WELDED TO THE PART", (posForXBlock + 5, posForYBlock, 0))
 
-    posForBlock += 5
-    adicionar_texto("- THE BOLTS AND NUTS IN THE TABLE MUST BE DISPATCHED LOOSE", (5, posForBlock, 0))
+    posForYBlock += 5
+    adicionar_texto("- THE BOLTS AND NUTS IN THE TABLE MUST BE DISPATCHED LOOSE", (posForXBlock + 5, posForYBlock, 0))
 
-    posForBlock += 7
-    adicionar_texto("- ALL IDENTICAL PARTS MUST HAVE THE SAME MARK", (5, posForBlock, 0))
+    posForYBlock += 7
+    adicionar_texto("- ALL IDENTICAL PARTS MUST HAVE THE SAME MARK", (posForXBlock + 5, posForYBlock, 0))
 
-    posForBlock += 7
-    adicionar_texto("- ALL COMPONENTS TO BE FORWARDED LOOSE MUST BE IDENTIFIED BY A MARK TAG", (5, posForBlock, 0))
+    posForYBlock += 7
+    adicionar_texto("- ALL COMPONENTS TO BE FORWARDED LOOSE MUST BE IDENTIFIED BY A MARK TAG", (posForXBlock + 5, posForYBlock, 0))
 
-    posForBlock += 7
-    adicionar_texto("  ON THE PART INDICATED IN THE DRAWING", (5, posForBlock, 0))
+    posForYBlock += 7
+    adicionar_texto("  ON THE PART INDICATED IN THE DRAWING", (posForXBlock + 5, posForYBlock, 0))
 
-    posForBlock += 5
-    adicionar_texto("- THE COMPONENTS SHOWED BY # MUST BE ASSEMBLED IN THE WORKSHOP", (5, posForBlock, 0))
+    posForYBlock += 5
+    adicionar_texto("- THE COMPONENTS SHOWED BY # MUST BE ASSEMBLED IN THE WORKSHOP", (posForXBlock + 5, posForYBlock, 0))
 
-    posForBlock += 7
-    adicionar_texto("- %%UIMPORTANT:%%U  PRE-ASSEMBLY IN WORK-SHOP", (5, posForBlock, 0))
+    posForYBlock += 7
+    adicionar_texto("- %%UIMPORTANT:%%U  PRE-ASSEMBLY IN WORK-SHOP", (posForXBlock + 5, posForYBlock, 0))
 
-    posForBlock += 7
-    adicionar_texto("-     = BOLT INDICATED IN OTHER DRAWING", (5, posForBlock, 0))
+    posForYBlock += 7
+    adicionar_texto("-     = BOLT INDICATED IN OTHER DRAWING", (posForXBlock + 5, posForYBlock, 0))
     msp.add_circle(
-      center= (14, posForBlock+1.5, 0),
+      center= (posForXBlock + 14, posForYBlock+1.5, 0),
       radius= 3,
       dxfattribs={
         "layer" : "NASCOSTE"
       }
     )
     msp.add_line(
-      start=(11.879, posForBlock+3.621, 0),
-      end=(16.121, posForBlock-0.621, 0),
+      start=(posForXBlock + 11.879, posForYBlock+3.621, 0),
+      end=(posForXBlock + 16.121, posForYBlock-0.621, 0),
       dxfattribs={
         "layer" : "NASCOSTE" 
       }
     )
     msp.add_line(
-      start=(11.879, posForBlock-0.621, 0),
-      end=(16.121, posForBlock+3.621, 0),
+      start=(posForXBlock + 11.879, posForYBlock-0.621, 0),
+      end=(posForXBlock + 16.121, posForYBlock+3.621, 0),
       dxfattribs={
         "layer" : "NASCOSTE" 
       }
     )
 
-    posForBlock += 7
-    adicionar_texto("- FOR CONSTRUCTION AND SUPPLY GENERAL NOTES, SEE SPECIFICATION \"SR-R1-01\"", (5, posForBlock, 0))
+    posForYBlock += 7
+    adicionar_texto("- FOR CONSTRUCTION AND SUPPLY GENERAL NOTES, SEE SPECIFICATION \"SR-R1-01\"", (posForXBlock + 5, posForYBlock, 0))
 
-    posForBlock += 7
-    adicionar_texto("- REFERENCE DRAWINGS: ___ ÷ ___", (5, posForBlock, 0))
+    posForYBlock += 7
+    adicionar_texto("- REFERENCE DRAWINGS: ___ ÷ ___", (posForXBlock + 5, posForYBlock, 0))
 
-    posForBlock += 7
-    adicionar_texto("- FOR ASSEMBLY DRAWING SEE DWG No.:  ___", (5, posForBlock, 0))
+    posForYBlock += 7
+    adicionar_texto("- FOR ASSEMBLY DRAWING SEE DWG No.:  ___", (posForXBlock + 5, posForYBlock, 0))
 
-    posForBlock += 7
+    posForYBlock += 7
     msp.add_text(text="- TOTAL WEIGHT:  "+total_weight+" kg approx", 
                  dxfattribs={
                     "height": 3,  
@@ -193,18 +211,18 @@ def lista(fullPath) :
                     "rotation": 0,
                     "layer" : "CONTORNI",
                     "width": 0.8,
-                    "insert": (5, posForBlock, 0)
+                    "insert": (posForXBlock + 5, posForYBlock, 0)
                  })
     
-    posForBlock += 7
+    posForYBlock += 7
     if(material_metro != ""):
-      adicionar_texto("- PROFILES MATERIAL:  " + material_metro, (5, posForBlock, 0))
-      posForBlock += 7
+      adicionar_texto("- PROFILES MATERIAL:  " + material_metro, (posForXBlock + 5, posForYBlock, 0))
+      posForYBlock += 7
     if(material_metro_quadrado != ""):
-      adicionar_texto("- SHEET MATERIAL:  " + material_metro_quadrado, (5, posForBlock, 0))
-      posForBlock += 7
+      adicionar_texto("- SHEET MATERIAL:  " + material_metro_quadrado, (posForXBlock + 5, posForYBlock, 0))
+      posForYBlock += 7
     
-    adicionar_texto("- ALL PIECES TO BE MARKED WITH:", (5, posForBlock, 0))
+    adicionar_texto("- ALL PIECES TO BE MARKED WITH:", (posForXBlock + 5, posForYBlock, 0))
 
     msp.add_text(text="AA-BX-XX/...",
                  dxfattribs={
@@ -213,15 +231,15 @@ def lista(fullPath) :
                     "rotation": 0,
                     "width": 0.8,
                     "layer" : "CONTORNI",
-                 }).set_placement((95, posForBlock, 0), align=TextEntityAlignment.CENTER)
+                 }).set_placement((posForXBlock + 95, posForYBlock, 0), align=TextEntityAlignment.CENTER)
     msp.add_lwpolyline(
-      points=[(78, posForBlock+5, 0), (112, posForBlock+5, 0), (112, posForBlock-2, 0), (78, posForBlock-2, 0), (78, posForBlock+5, 0)],
+      points=[(posForXBlock + 78, posForYBlock+5, 0), (posForXBlock + 112, posForYBlock+5, 0), (posForXBlock + 112, posForYBlock-2, 0), (posForXBlock + 78, posForYBlock-2, 0), (posForXBlock + 78, posForYBlock+5, 0)],
       dxfattribs={
         "layer" : "SOTTILI"
       }
     )
     
-    posForBlock += 9
+    posForYBlock += 9
     msp.add_text(text="%%uANNOTATIONS:%%u", 
               dxfattribs={
                 "height": 4,  
@@ -229,7 +247,7 @@ def lista(fullPath) :
                 "rotation": 0,
                 "layer" : "NOTE",
                 "width": 0.8,
-                "insert": (5, posForBlock, 0)
+                "insert": (posForXBlock + 5, posForYBlock, 0)
               })
 
     # Exiba o material em diferentes unidades
@@ -237,7 +255,7 @@ def lista(fullPath) :
     mtext = msp.add_mtext(
       text= "\\A1;" + elemento,
       dxfattribs={
-        "insert": (103.742, 585.407, 0),  
+        "insert": (posForXBlock + 90, 599, 0),  
         "char_height": 25,  
         "width": 0,  
         "style": "Standard",
@@ -248,13 +266,8 @@ def lista(fullPath) :
       }
       )
     
-    listPath = fatherPath + "/list/" + elemento + "_LISTA.dxf"
-    doc.saveas(listPath)
+    doc.save()
 
-    with zipfile.ZipFile(fatherPath + '/list/BLOCOS-BRANCOS.zip', 'a', compression=zipfile.ZIP_DEFLATED) as myzip:
-      myzip.write(listPath, arcname=elemento + "_LISTA.dxf")
-    
-    os.remove(listPath)
 
   planilhas = workbook.worksheets
   nomes_planilhas = set()
@@ -265,12 +278,17 @@ def lista(fullPath) :
 
   nomes_planilhas = list(nomes_planilhas)
   nomes_planilhas.sort()
-
-  zipFile = fatherPath + '/list/BLOCOS-BRANCOS.zip'
-  with zipfile.ZipFile(zipFile, 'w', compression=zipfile.ZIP_DEFLATED) as myzip:
-   myzip.write(fatherPath + '/BLOCO-BRANCO.dxf', arcname='BLOCO-BRANCO.dxf')
-
-  for elemento in nomes_planilhas:
-    writeFiles(elemento)
   
+  dxfPath = fatherPath + "/list/" + fileName + '.dxf'
+  CreateFile = ezdxf.readfile(fatherPath + '/BLOCO-BRANCO.dxf')
+  CreateFile.saveas(dxfPath)
+
+  for index, elemento in enumerate(nomes_planilhas): 
+    writeFiles(elemento, index)
+  
+  with zipfile.ZipFile(zipFile, 'a', compression=zipfile.ZIP_DEFLATED) as myzip:
+    myzip.write(dxfPath, arcname=fileName + '.dxf')
+  
+  #os.remove(dxfPath)
+
   return zipFile
