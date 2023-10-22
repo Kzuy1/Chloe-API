@@ -1,4 +1,5 @@
 import ezdxf
+from ezdxf.enums import TextEntityAlignment
 import openpyxl
 import os
 import zipfile
@@ -94,6 +95,7 @@ def lista(fullPath) :
     total_weight = 0.0
     for item in PecaList:
         total_weight += float(item['PesoTotal'])
+    total_weight = str(round(total_weight))
 
     #Pega Informações do Material
     materiais_metro = set()
@@ -125,31 +127,110 @@ def lista(fullPath) :
     
     posForBlock += 12
     adicionar_texto("  OTHERWISE WHERE INDICATED.", (5, posForBlock, 0))
+
     posForBlock += 5
     adicionar_texto("- ALL BEND RADIUS ARE EQUAL TO THE VALUE OF THE THICKNESS OF THE SHEET", (5, posForBlock, 0))
+
     posForBlock += 7
     adicionar_texto("  EXCEPT THOSE SHOWED BY #, ASSEMBLED OR WELDED TO THE PART", (5, posForBlock, 0))
+
     posForBlock += 5
     adicionar_texto("- THE BOLTS AND NUTS IN THE TABLE MUST BE DISPATCHED LOOSE", (5, posForBlock, 0))
+
     posForBlock += 7
     adicionar_texto("- ALL IDENTICAL PARTS MUST HAVE THE SAME MARK", (5, posForBlock, 0))
+
     posForBlock += 7
     adicionar_texto("- ALL COMPONENTS TO BE FORWARDED LOOSE MUST BE IDENTIFIED BY A MARK TAG", (5, posForBlock, 0))
+
     posForBlock += 7
     adicionar_texto("  ON THE PART INDICATED IN THE DRAWING", (5, posForBlock, 0))
+
     posForBlock += 5
     adicionar_texto("- THE COMPONENTS SHOWED BY # MUST BE ASSEMBLED IN THE WORKSHOP", (5, posForBlock, 0))
+
     posForBlock += 7
     adicionar_texto("- %%UIMPORTANT:%%U  PRE-ASSEMBLY IN WORK-SHOP", (5, posForBlock, 0))
+
     posForBlock += 7
     adicionar_texto("-     = BOLT INDICATED IN OTHER DRAWING", (5, posForBlock, 0))
+    msp.add_circle(
+      center= (14, posForBlock+1.5, 0),
+      radius= 3,
+      dxfattribs={
+        "layer" : "NASCOSTE"
+      }
+    )
+    msp.add_line(
+      start=(11.879, posForBlock+3.621, 0),
+      end=(16.121, posForBlock-0.621, 0),
+      dxfattribs={
+        "layer" : "NASCOSTE" 
+      }
+    )
+    msp.add_line(
+      start=(11.879, posForBlock-0.621, 0),
+      end=(16.121, posForBlock+3.621, 0),
+      dxfattribs={
+        "layer" : "NASCOSTE" 
+      }
+    )
+
     posForBlock += 7
     adicionar_texto("- FOR CONSTRUCTION AND SUPPLY GENERAL NOTES, SEE SPECIFICATION \"SR-R1-01\"", (5, posForBlock, 0))
+
     posForBlock += 7
     adicionar_texto("- REFERENCE DRAWINGS: ___ ÷ ___", (5, posForBlock, 0))
+
     posForBlock += 7
     adicionar_texto("- FOR ASSEMBLY DRAWING SEE DWG No.:  ___", (5, posForBlock, 0))
+
     posForBlock += 7
+    msp.add_text(text="- TOTAL WEIGHT:  "+total_weight+" kg approx", 
+                 dxfattribs={
+                    "height": 3,  
+                    "style": "ROMAND",
+                    "rotation": 0,
+                    "layer" : "CONTORNI",
+                    "width": 0.8,
+                    "insert": (5, posForBlock, 0)
+                 })
+    
+    posForBlock += 7
+    if(material_metro != ""):
+      adicionar_texto("- PROFILES MATERIAL:  " + material_metro, (5, posForBlock, 0))
+      posForBlock += 7
+    if(material_metro_quadrado != ""):
+      adicionar_texto("- SHEET MATERIAL:  " + material_metro_quadrado, (5, posForBlock, 0))
+      posForBlock += 7
+    
+    adicionar_texto("- ALL PIECES TO BE MARKED WITH:", (5, posForBlock, 0))
+
+    msp.add_text(text="AA-BX-XX/...",
+                 dxfattribs={
+                    "height": 3,
+                    "style": "ROMAND",
+                    "rotation": 0,
+                    "width": 0.8,
+                    "layer" : "CONTORNI",
+                 }).set_placement((95, posForBlock, 0), align=TextEntityAlignment.CENTER)
+    msp.add_lwpolyline(
+      points=[(78, posForBlock+5, 0), (112, posForBlock+5, 0), (112, posForBlock-2, 0), (78, posForBlock-2, 0), (78, posForBlock+5, 0)],
+      dxfattribs={
+        "layer" : "SOTTILI"
+      }
+    )
+    
+    posForBlock += 9
+    msp.add_text(text="%%uANNOTATIONS:%%u", 
+              dxfattribs={
+                "height": 4,  
+                "style": "ROMAND",
+                "rotation": 0,
+                "layer" : "NOTE",
+                "width": 0.8,
+                "insert": (5, posForBlock, 0)
+              })
 
     # Exiba o material em diferentes unidades
 
