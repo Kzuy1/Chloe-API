@@ -13,7 +13,9 @@ def lista(fullPath) :
   with zipfile.ZipFile(zipFile, 'w', compression=zipfile.ZIP_DEFLATED) as myzip:
    myzip.write(fatherPath + '/BLOCO-BRANCO.dxf', arcname='BLOCO-BRANCO.dxf')
 
+  # Função para escrever informações em arquivos DXF
   def writeFiles(elemento, index):
+    # Itera sobre as linhas da planilha 'MATERIAL'
     worksheetMaterial = workbook[elemento + ' - MATERIAL']
     MaterialList = []
 
@@ -35,6 +37,7 @@ def lista(fullPath) :
       }
       MaterialList.append(material)
 
+    # Itera sobre as linhas da planilha 'PEÇAS'
     worksheetPeca = workbook[elemento + ' - PEÇAS']
     PecaList = []
 
@@ -52,9 +55,11 @@ def lista(fullPath) :
       }
       PecaList.append(peca)
 
+    # Lê um arquivo DXF
     doc = ezdxf.readfile(fatherPath + "/list/" + fileName + '.dxf')
     msp = doc.modelspace()
 
+    # Posições base para Inserir
     posForYBlock = 0
     posForXBlock = 270 * index
 
@@ -130,6 +135,7 @@ def lista(fullPath) :
     material_metro_quadrado = " / ".join(materiais_metro_quadrado)
 
     #Insere as Notas
+    #Base das Notas
     attrib_properties = { 
       "height": 3,  
       "style": "Standard",
@@ -139,6 +145,7 @@ def lista(fullPath) :
       "insert": (0, 0, 0)
     }
 
+    #Função Geral
     def adicionar_texto(texto, insert):
       attrib_properties["insert"] = insert
       msp.add_text(text=texto, dxfattribs=attrib_properties)
@@ -268,7 +275,6 @@ def lista(fullPath) :
     
     doc.save()
 
-
   planilhas = workbook.worksheets
   nomes_planilhas = set()
 
@@ -289,6 +295,6 @@ def lista(fullPath) :
   with zipfile.ZipFile(zipFile, 'a', compression=zipfile.ZIP_DEFLATED) as myzip:
     myzip.write(dxfPath, arcname=fileName + '.dxf')
   
-  #os.remove(dxfPath)
+  os.remove(dxfPath)
 
   return zipFile
