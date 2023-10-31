@@ -208,10 +208,10 @@ def lista(fullPath) :
     adicionar_texto("- REFERENCE DRAWINGS: ___ ÷ ___", (posForXBlock + 5, posForYBlock, 0))
 
     posForYBlock += 7
-    adicionar_texto("- FOR ASSEMBLY DRAWING SEE DWG No.:  ___", (posForXBlock + 5, posForYBlock, 0))
+    adicionar_texto("- FOR ASSEMBLY DRAWING SEE DWG No.: ___", (posForXBlock + 5, posForYBlock, 0))
 
     posForYBlock += 7
-    msp.add_text(text="- TOTAL WEIGHT:  "+total_weight+" kg approx", 
+    msp.add_text(text="- TOTAL WEIGHT: "+total_weight+" kg approx", 
                  dxfattribs={
                     "height": 3,  
                     "style": "ROMAND",
@@ -223,10 +223,10 @@ def lista(fullPath) :
     
     posForYBlock += 7
     if(material_metro != ""):
-      adicionar_texto("- PROFILES MATERIAL:  " + material_metro, (posForXBlock + 5, posForYBlock, 0))
+      adicionar_texto("- PROFILES MATERIAL: " + material_metro, (posForXBlock + 5, posForYBlock, 0))
       posForYBlock += 7
     if(material_metro_quadrado != ""):
-      adicionar_texto("- SHEET MATERIAL:  " + material_metro_quadrado, (posForXBlock + 5, posForYBlock, 0))
+      adicionar_texto("- SHEET MATERIAL: " + material_metro_quadrado, (posForXBlock + 5, posForYBlock, 0))
       posForYBlock += 7
     
     adicionar_texto("- ALL PIECES TO BE MARKED WITH:", (posForXBlock + 5, posForYBlock, 0))
