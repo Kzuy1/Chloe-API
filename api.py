@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, send_file
-from lista import lista
+from waitress import serve
+from excelToDXF import listToDXF
 import os
 import asyncio
 import sys
@@ -18,8 +19,8 @@ def upload_file():
         excelFile = os.path.join('uploads', filename)
         file.save(excelFile)
 
-        blocosFileZip = lista(excelFile)
-        return send_file(blocosFileZip, as_attachment=True, download_name="BLOCOS-BRANCOS.zip", mimetype='application/zip')
+        convertExcelDXF = listToDXF(excelFile)
+        return send_file(convertExcelDXF.targetDXFFile, as_attachment=True, download_name= convertExcelDXF.fileName + ".dxf", mimetype='application/dxf')
     else:
         return jsonify({'message': 'Nenhum arquivo enviado.'}), 400
         
@@ -35,6 +36,10 @@ sys.excepthook = uncaught_exception_handler
 loop = asyncio.get_event_loop()
 loop.set_exception_handler(unhandled_rejection_handler)
 
+# Opção para testes
+# if __name__ == '__main__':
+#     app.run(debug=True)
+
+# Opção para produção
 if __name__ == '__main__':
-    from waitress import serve
     serve(app, host="0.0.0.0", port=8080)
