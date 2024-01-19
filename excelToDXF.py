@@ -148,7 +148,7 @@ class listToDXF:
 
   # Função para adicionar o Bloco de Revisão ao Desenho
   def addRevisionSubtitle(self):
-    revisionBlock = self.docDXF.blocks.get('REDE-DISTINTA-REVISIONE')
+    revisionBlock = self.docDXF.blocks.get('REDECAM_REVISION')
     if not revisionBlock : return
 
     for i in range(4) :
