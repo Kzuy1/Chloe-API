@@ -158,7 +158,7 @@ class listToDXF:
 
   # Função para adicionar a Lista de Material ao Blocos de Material e adicionar ao DXF
   def addMaterialList(self, listMaterial):
-    materialBlock = self.docDXF.blocks.get('EMB_LISTA_DE_MATERIAL')
+    materialBlock = self.docDXF.blocks.get('EMB_LISTA_DE_MATERIAL_v0.2')
     if not materialBlock : return
 
     self.posForYBlock += 13
@@ -175,11 +175,11 @@ class listToDXF:
   # Função para adicionar o Bloco Descritivo de Material ao DXF
   def addDescriptionMaterialList(self):
     if self.drawnLanguage == 'brazil' :
-      descriptionMaterialBlock = self.docDXF.blocks.get('EMB_LISTA_DE_MATERIAL_DESCRITIVO')
-      infoMaterialBlock = self.docDXF.blocks.get('EMB_LISTA_DE_MATERIAL_INFO')
+      descriptionMaterialBlock = self.docDXF.blocks.get('EMB_LISTA_DE_MATERIAL_DESCRITIVO_v0.2')
+      infoMaterialBlock = self.docDXF.blocks.get('EMB_LISTA_DE_MATERIAL_INFO_v0.2')
     else :
-      descriptionMaterialBlock = self.docDXF.blocks.get('EMB_LISTA_DE_MATERIAL_DESCRITIVO_ING')
-      infoMaterialBlock = self.docDXF.blocks.get('EMB_LISTA_DE_MATERIAL_INFO_ING')
+      descriptionMaterialBlock = self.docDXF.blocks.get('EMB_LISTA_DE_MATERIAL_DESCRITIVO_ING_v0.2')
+      infoMaterialBlock = self.docDXF.blocks.get('EMB_LISTA_DE_MATERIAL_INFO_ING_v0.2')
 
     self.mspDXF.add_blockref(descriptionMaterialBlock.name, insert=(self.posForXBlock, 182, 0))
     self.mspDXF.add_blockref(infoMaterialBlock.name, insert=(self.posForXBlock, self.posForYBlock, 0))
@@ -212,32 +212,6 @@ class listToDXF:
   def addMtext(self, text, positionInsert, attributesMtext):
     attributesMtext["insert"] = positionInsert
     self.mspDXF.add_text(text=text, dxfattribs=attributesMtext)
-
-  # Função para adiciona simbolo da nota PARAFUSO INDICADO EM OUTRO DESENHO ao DXF
-  def addBoltCircle(self):
-    self.mspDXF.add_circle(
-      center= (self.posForXBlock + 14, self.posForYBlock + 1.5, 0),
-      radius= 3,
-      dxfattribs={
-        "layer" : "NASCOSTE"
-      }
-    )
-
-    self.mspDXF.add_line(
-      start=(self.posForXBlock + 11.879, self.posForYBlock + 3.621, 0),
-      end=(self.posForXBlock + 16.121, self.posForYBlock - 0.621, 0),
-      dxfattribs={
-        "layer" : "NASCOSTE" 
-      }
-    )
-
-    self.mspDXF.add_line(
-      start=(self.posForXBlock + 11.879, self.posForYBlock - 0.621, 0),
-      end=(self.posForXBlock + 16.121, self.posForYBlock + 3.621, 0),
-      dxfattribs={
-        "layer" : "NASCOSTE" 
-      }
-    )
 
   # Adiciona a Tag e o quadrado da Tag ao DXF
   def addTagDraw(self, textPosition, retanglePoints):
@@ -288,12 +262,6 @@ class listToDXF:
     }
 
     self.posForYBlock += 12
-    self.addMtext("  OTHERWISE WHERE INDICATED.", (self.posForXBlock + 5, self.posForYBlock, 0), generalPropertiesNotes)
-
-    self.posForYBlock += 5
-    self.addMtext("- ALL BEND RADIUS ARE EQUAL TO THE VALUE OF THE THICKNESS OF THE SHEET", (self.posForXBlock + 5, self.posForYBlock, 0), generalPropertiesNotes)
-
-    self.posForYBlock += 7
     self.addMtext("  EXCEPT THOSE SHOWED BY #, ASSEMBLED OR WELDED TO THE PART", (self.posForXBlock + 5, self.posForYBlock, 0), generalPropertiesNotes)
 
     self.posForYBlock += 5
@@ -310,25 +278,25 @@ class listToDXF:
 
     self.posForYBlock += 5
     self.addMtext("- THE COMPONENTS SHOWED BY # MUST BE ASSEMBLED IN THE WORKSHOP", (self.posForXBlock + 5, self.posForYBlock, 0), generalPropertiesNotes)
+    
+    self.posForYBlock += 7
+    self.addMtext("- FOR CONSTRUCTION AND SUPPLY GENERAL NOTES, SEE SPECIFICATION \"SR-R1-01\"", (self.posForXBlock + 5, self.posForYBlock, 0), generalPropertiesNotes)
 
     self.posForYBlock += 7
     self.addMtext("- %%UIMPORTANT:%%U  PRE-ASSEMBLY IN WORK-SHOP", (self.posForXBlock + 5, self.posForYBlock, 0), generalPropertiesNotes)
 
     self.posForYBlock += 7
-    self.addMtext("-     = BOLT INDICATED IN OTHER DRAWING", (self.posForXBlock + 5, self.posForYBlock, 0), generalPropertiesNotes)
-    self.addBoltCircle()
+    boltBlock = self.docDXF.blocks.get('1418104')
+    self.mspDXF.add_blockref(boltBlock.name, insert=(self.posForXBlock + 5, self.posForYBlock, 0))
 
     self.posForYBlock += 7
-    self.addMtext("- FOR CONSTRUCTION AND SUPPLY GENERAL NOTES, SEE SPECIFICATION \"SR-R1-01\"", (self.posForXBlock + 5, self.posForYBlock, 0), generalPropertiesNotes)
-
-    self.posForYBlock += 7
-    self.addMtext("- REFERENCE DRAWINGS: ___ ÷ ___", (self.posForXBlock + 5, self.posForYBlock, 0), generalPropertiesNotes)
+    self.addMtext("- REFERENCE DRAWINGS No.: ___ ÷ ___", (self.posForXBlock + 5, self.posForYBlock, 0), generalPropertiesNotes)
 
     self.posForYBlock += 7
     self.addMtext("- FOR ASSEMBLY DRAWING SEE DWG No.: ___", (self.posForXBlock + 5, self.posForYBlock, 0), generalPropertiesNotes)
 
     self.posForYBlock += 7
-    self.addMtext("- TOTAL WEIGHT: " + approxTotalWeight + " kg approx", (self.posForXBlock + 5, self.posForYBlock, 0), approxTotalWeighttribsPropertiesNotes)
+    self.addMtext("- TOTAL WEIGHT, APPROX: " + approxTotalWeight + " kg", (self.posForXBlock + 5, self.posForYBlock, 0), approxTotalWeighttribsPropertiesNotes)
 
     self.posForYBlock += 7
     if(materialMeter != ""):
@@ -349,7 +317,7 @@ class listToDXF:
     ]
     self.addTagDraw((self.posForXBlock + 95, self.posForYBlock, 0), rectanglePointsTag)
 
-    self.posForYBlock += 9
+    self.posForYBlock += 8
     self.addMtext("%%uANNOTATIONS:%%u", (self.posForXBlock + 5, self.posForYBlock, 0), annotationsPropertiesNotes)
 
   def addGeneralNotesPTBR(self, approxTotalWeight, materialMeter, materialSquareMeter):
@@ -381,12 +349,6 @@ class listToDXF:
     }
 
     self.posForYBlock += 12
-    self.addMtext("  EXCETO ONDE INDICADO", (self.posForXBlock + 5, self.posForYBlock, 0), generalPropertiesNotes)
-
-    self.posForYBlock += 5
-    self.addMtext("- TODOS OS RAIOS SÃO IGUAIS AO VALOR DA ESPESSURA DA CHAPA,", (self.posForXBlock + 5, self.posForYBlock, 0), generalPropertiesNotes)
-
-    self.posForYBlock += 7
     self.addMtext("  EXCETO AQUELES MOSTRADOS POR #, MONTADOS OU SOLDADOS À PEÇA", (self.posForXBlock + 5, self.posForYBlock, 0), generalPropertiesNotes)
 
     self.posForYBlock += 5
@@ -408,14 +370,14 @@ class listToDXF:
     self.addMtext("- OS COMPONENTE  MOSTRADOS COM # DEVEM SER MONTADOS NA FABRICAÇÃO", (self.posForXBlock + 5, self.posForYBlock, 0), generalPropertiesNotes)
 
     self.posForYBlock += 7
+    self.addMtext("- PARA NOTAS GERAIS DE CONSTRUÇÃO E FORNECIMENTO, VER ESPECIFICAÇÃO \"SR-R1-01\"", (self.posForXBlock + 5, self.posForYBlock, 0), generalPropertiesNotes)
+
+    self.posForYBlock += 7
     self.addMtext("- %%UIMPORTANTE:%%U  PRÉ-MONTAGEM NA FABRICAÇÃO", (self.posForXBlock + 5, self.posForYBlock, 0), generalPropertiesNotes)
 
     self.posForYBlock += 7
-    self.addMtext("-     = PARAFUSO INDICADO EM OUTRO DESENHO", (self.posForXBlock + 5, self.posForYBlock, 0), generalPropertiesNotes)
-    self.addBoltCircle()
-
-    self.posForYBlock += 7
-    self.addMtext("- PARA NOTAS GERAIS DE CONSTRUÇÃO E FORNECIMENTO, VER ESPECIFICAÇÃO \"SR-R1-01\"", (self.posForXBlock + 5, self.posForYBlock, 0), generalPropertiesNotes)
+    boltBlock = self.docDXF.blocks.get('A$C244a8b43')
+    self.mspDXF.add_blockref(boltBlock.name, insert=(self.posForXBlock + 5, self.posForYBlock, 0))
 
     self.posForYBlock += 7
     self.addMtext("- DESENHOS DE REFERÊNCIA N°: ___ ÷ ___", (self.posForXBlock + 5, self.posForYBlock, 0), generalPropertiesNotes)
@@ -424,7 +386,7 @@ class listToDXF:
     self.addMtext("- PARA DESENHO DE MONTAGEM VER DESENHO N°: ___", (self.posForXBlock + 5, self.posForYBlock, 0), generalPropertiesNotes)
 
     self.posForYBlock += 7
-    self.addMtext("- PESO TOTAL: " + approxTotalWeight + " kg aprox", (self.posForXBlock + 5, self.posForYBlock, 0), approxTotalWeighttribsPropertiesNotes)
+    self.addMtext("- PESO TOTAL, APROX: " + approxTotalWeight + " kg", (self.posForXBlock + 5, self.posForYBlock, 0), approxTotalWeighttribsPropertiesNotes)
 
     self.posForYBlock += 7
     if(materialMeter != ""):
@@ -445,7 +407,7 @@ class listToDXF:
     ]
     self.addTagDraw((self.posForXBlock + 120, self.posForYBlock, 0), rectanglePointsTag)
 
-    self.posForYBlock += 9
+    self.posForYBlock += 8
     self.addMtext("%%uNOTAS:%%u", (self.posForXBlock + 5, self.posForYBlock, 0), annotationsPropertiesNotes)
 
 class drawingList:
