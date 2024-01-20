@@ -1,6 +1,7 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, make_response
 from waitress import serve
 from excelToDXF import listToDXF
+from verifyDXF import veriftDrawingDXF
 import os
 import asyncio
 import sys
@@ -23,7 +24,20 @@ def upload_file():
         return send_file(convertExcelDXF.targetDXFFile, as_attachment=True, download_name= convertExcelDXF.fileName + ".dxf", mimetype='application/dxf')
     else:
         return jsonify({'message': 'Nenhum arquivo enviado.'}), 400
-        
+
+@app.route('/verify', methods=['POST'])
+def routeVerifyDrawing():
+    file = request.files['file']
+    if file:
+        fileName = file.filename
+        drawingFile = os.path.join('drawingSaves', fileName)
+        file.save(drawingFile)
+
+        verifyDrawing = veriftDrawingDXF(drawingFile)
+        return make_response(verifyDrawing.message, 200, {'Content-Type': 'text/plain'})
+    else:
+        return jsonify({'message': 'Nenhum arquivo enviado.'}), 400
+
 # Erro no Handling
 def uncaught_exception_handler(ex):
     print("Uncaught Exception:", ex)
@@ -33,10 +47,11 @@ def unhandled_rejection_handler(promise, reason):
 
 sys.excepthook = uncaught_exception_handler
 
-loop = asyncio.get_event_loop()
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
 loop.set_exception_handler(unhandled_rejection_handler)
 
-# Opção para testes
+# # Opção para testes
 # if __name__ == '__main__':
 #     app.run(debug=True)
 
