@@ -51,10 +51,10 @@ loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 loop.set_exception_handler(unhandled_rejection_handler)
 
-# # Opção para testes
+# Opção para testes
 # if __name__ == '__main__':
 #     app.run(debug=True)
 
-# Opção para produção
+# # Opção para produção
 if __name__ == '__main__':
     serve(app, host="0.0.0.0", port=8080)
