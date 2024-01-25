@@ -49,15 +49,16 @@ class veriftDrawingDXF:
                 height = attrib.dxf.height
 
                 dataSubtitle[tag] = {'value': value, 'height': height}
-            dataSubtitle['x_scale'] = insert.get_dxf_attrib('xscale')
-            dataSubtitle['y_scale'] = insert.get_dxf_attrib('yscale')
-            dataSubtitle['z_scale'] = insert.get_dxf_attrib('zscale')
+            dataSubtitle['x_scale'] = insert.get_dxf_attrib('xscale') or 1
+            dataSubtitle['y_scale'] = insert.get_dxf_attrib('yscale') or 1
+            dataSubtitle['z_scale'] = insert.get_dxf_attrib('zscale') or 1
 
         if 'EXCL' in dataSubtitle:
             self.message += 'Titulo, Bloco R18\n'
         
-        if 'REV-CARTIGLIO_1_0' in dataSubtitle and dataSubtitle['REV-CARTIGLIO_1_0']['height'] != 2:
-            self.message += 'Titulo, Bloco R16\n'
+        if 'REV-CARTIGLIO_1_0' in dataSubtitle:
+            if (2 * dataSubtitle['x_scale'] - dataSubtitle['REV-CARTIGLIO_1_0']['height']) > 0.01:
+                self.message += 'Titulo, Bloco R16\n'
 
     # Função para verificar se um bloco existe no Desenho
     def checkBlockExists(self, blockName):
