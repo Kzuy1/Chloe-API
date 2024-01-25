@@ -46,13 +46,17 @@ class veriftDrawingDXF:
             for attrib in insert.attribs:
                 tag = attrib.dxf.tag
                 value = attrib.dxf.text
+                height = attrib.dxf.height
 
-                dataSubtitle[tag] = value
+                dataSubtitle[tag] = {'value': value, 'height': height}
             dataSubtitle['x_scale'] = insert.get_dxf_attrib('xscale')
             dataSubtitle['y_scale'] = insert.get_dxf_attrib('yscale')
             dataSubtitle['z_scale'] = insert.get_dxf_attrib('zscale')
 
-        if 'EXCL' not in dataSubtitle or 'REV-CART' not in dataSubtitle:
+        if 'EXCL' in dataSubtitle:
+            self.message += 'Titulo, Bloco R18\n'
+        
+        if 'REV-CARTIGLIO_1_0' in dataSubtitle and dataSubtitle['REV-CARTIGLIO_1_0']['height'] != 2:
             self.message += 'Titulo, Bloco R16\n'
 
     # Função para verificar se um bloco existe no Desenho
