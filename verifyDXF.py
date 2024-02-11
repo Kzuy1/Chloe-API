@@ -1,19 +1,24 @@
+from errorDrawing import errorDrawing
 import ezdxf
 import os
 import re
 
-class veriftDrawingDXF:
+class verifyDrawingDXF:
     def __init__(self, fullPath):
+        self.errorDrawing = errorDrawing()
         self.fullPath = fullPath
-        self.message = ''
         self.fileDrawingCode = self.getDrawingCode()
+        self.fileDrawingCodeSeparate = self.getDrawingCodeSeparate()
         self.docDXF = ezdxf.readfile(self.fullPath)
         self.mspDXF = self.docDXF.modelspace()
-        self.checkCorrectSeparation()
         self.subtitleBlock = self.getSubtitleBlock()
+
+        self.checkCorrectSeparation()
+        self.checksubtitleBlock()
         self.checkBlockInR16()
         self.checkLayerInR16()
-        
+
+        self.message = self.errorDrawing.getErrorMessages()
 
     # Função para pegar o código do Desenho
     def getDrawingCode(self):
@@ -21,44 +26,80 @@ class veriftDrawingDXF:
         drawingCode = drawingCode.replace('EXECUTANDO_', '')
         drawingCode = drawingCode.replace('ENTREGA_', '')
 
-        return(drawingCode)
-
-    # Função para verificar se está separado certo o codigo
-    def checkCorrectSeparation(self):
-        regexCode = r'^[A-Z0-9]+-[A-Z0-9]+_[A-Z0-9]+-[A-Z0-9]+-[A-Z0-9]+_[A-Z0-9]+$'
-
+        return drawingCode
+    
+    # Função para pegar o código do Desenho separado
+    def getDrawingCodeSeparate(self):
         codeSeparate = self.fileDrawingCode.split('-')  
-        codeSeparate = [item.split('_') for item in codeSeparate]  
-        codeSeparate = sum(codeSeparate, [])  
+        codeSeparate = [item.split('_') for item in codeSeparate]
+        codeSeparate = sum(codeSeparate, [])
 
-        if not re.match(regexCode, self.fileDrawingCode):
-            self.message += 'O arquivo não está separado corretamente. '
-
-            if len(codeSeparate) == 6:
-                self.message += f'Correto: {codeSeparate[0]}-{codeSeparate[1]}_{codeSeparate[2]}-{codeSeparate[3]}-{codeSeparate[4]}_{codeSeparate[5]}\n'
-            else:
-                self.message += '\n'
+        return codeSeparate
     
     # Função para pegar as informações do Bloco de Título do Desenho
     def getSubtitleBlock(self):
-        dataSubtitle = {}
+        subtitleBlock = {}
         for insert in self.mspDXF.query('INSERT[name=="REDECAM-TITOLO-TAVOLA"]'):
             for attrib in insert.attribs:
                 tag = attrib.dxf.tag
                 value = attrib.dxf.text
                 height = attrib.dxf.height
 
-                dataSubtitle[tag] = {'value': value, 'height': height}
-            dataSubtitle['x_scale'] = insert.get_dxf_attrib('xscale') or 1
-            dataSubtitle['y_scale'] = insert.get_dxf_attrib('yscale') or 1
-            dataSubtitle['z_scale'] = insert.get_dxf_attrib('zscale') or 1
+                subtitleBlock[tag] = {'value': value, 'height': height}
+            subtitleBlock['x_scale'] = insert.get_dxf_attrib('xscale') or 1
+            subtitleBlock['y_scale'] = insert.get_dxf_attrib('yscale') or 1
+            subtitleBlock['z_scale'] = insert.get_dxf_attrib('zscale') or 1
 
-        if 'EXCL' in dataSubtitle:
-            self.message += 'Titulo, Bloco R18\n'
+        return subtitleBlock
+    
+    # Função para verificar se está separado certo o codigo
+    def checkCorrectSeparation(self):
+        regexCode = r'^[A-Z0-9]+-[A-Z0-9]+_[A-Z0-9]+-[A-Z0-9]+-[A-Z0-9]+_[A-Z0-9]+$'
+
+        if not re.match(regexCode, self.fileDrawingCode):
+            self.errorDrawing.ed01['booleanValue'] = True
+
+            if len(self.fileDrawingCodeSeparate) == 6:
+                self.errorDrawing.ed01['description'] += f' Correto: {self.fileDrawingCodeSeparate[0]}-{self.fileDrawingCodeSeparate[1]}_{self.fileDrawingCodeSeparate[2]}-{self.fileDrawingCodeSeparate[3]}-{self.fileDrawingCodeSeparate[4]}_{self.fileDrawingCodeSeparate[5]}\n'
+
+    # Função para verificar as informações do Bloco de Título do Desenho
+    def checksubtitleBlock(self):
+        #Verifica se está na versão R18
+        if 'EXCL' in self.subtitleBlock:
+            self.errorDrawing.edOB['booleanValue'] = True
+            self.errorDrawing.edOB['description'] += "REDECAM-TITOLO-TAVOLA - Bloco de Legenda\n"
         
-        if 'REV-CARTIGLIO_1_0' in dataSubtitle:
-            if (2 * dataSubtitle['x_scale'] - dataSubtitle['REV-CARTIGLIO_1_0']['height']) > 0.01:
-                self.message += 'Titulo, Bloco R16\n'
+        #Verifica se está na versão R16
+        if 'REV-CARTIGLIO_1_0' in self.subtitleBlock:
+            if (2 * self.subtitleBlock['x_scale'] - self.subtitleBlock['REV-CARTIGLIO_1_0']['height']) > 0.01:
+                self.errorDrawing.edOB['booleanValue'] = True
+                self.errorDrawing.edOB['description'] += "REDECAM-TITOLO-TAVOLA - Bloco de Legenda\n"
+
+        # Verifica cada chave e seu valor correspondente somente se o Error 01 não tiver ativo
+        if self.errorDrawing.ed01['booleanValue'] == False:
+            # Chaves do Código do Desenho
+            keyCodes = {
+                'COMMESSA-N.': self.fileDrawingCodeSeparate[0] + '-' + self.fileDrawingCodeSeparate[1],
+                'APP': self.fileDrawingCodeSeparate[2],
+                'GRUP': self.fileDrawingCodeSeparate[3],
+                'DIS': self.fileDrawingCodeSeparate[4],
+                'REV': self.fileDrawingCodeSeparate[5]
+            }
+
+            for key, keyValue in keyCodes.items():
+                if self.subtitleBlock[key] != keyValue:
+                    
+                    self.errorDrawing.ed02['booleanValue'] = True
+                    break
+
+        # Verifica se a escala condiz com o que está escrito
+        scaleSubtitle = self.subtitleBlock['SCALA']['value']
+        if scaleSubtitle in ('', "1:__") or abs(float(scaleSubtitle.replace("1:", "")) - self.subtitleBlock['x_scale']) > 0.0001:
+            self.errorDrawing.ed03['booleanValue'] = True
+
+        # Verifica se o desenho foi feito por EMB
+        if 'SIGLA' in self.subtitleBlock and self.subtitleBlock['SIGLA'] != 'EMB' :
+            self.errorDrawing.ed04['booleanValue'] = True
 
     # Função para verificar se um bloco existe no Desenho
     def checkBlockExists(self, blockName):
@@ -85,24 +126,30 @@ class veriftDrawingDXF:
             ('EMB_LISTA_DE_MATERIAL_DESCRITIVO', 'Bloco de Material das Descrições na R16\n')
         ]
 
-        for block in blocksToCheck:
-            verifyBlock = self.checkBlockExists(block[0])
+        for blockName in blocksToCheck:
+            verifyBlock = self.checkBlockExists(blockName[0])
 
-            if verifyBlock: self.message += block[1]
+            if verifyBlock: 
+                self.errorDrawing.edOB['booleanValue'] = True
+                self.errorDrawing.edOB['description'] += blockName[0] + " - " + blockName[1]
         
         # Verificação de blocos de Solda
         if self.checkBlockExists('TIPICO-SALDATURA_ENG-POR') or \
             self.checkBlockExists('TIPICO-SALDATURA_ITA-ENG'): 
-                self.message += 'Bloco de Solda na R16\n'
+                self.errorDrawing.edOB['booleanValue'] = True
+                self.errorDrawing.edOB['description'] += 'TIPICO-SALDATURA - Bloco de Solda na R16\n'
 
         # Verificação de blocos de formato
         if self.checkBlockExists('REDE-A0') or \
             self.checkBlockExists('REDE-A1') or \
             self.checkBlockExists('REDE-A2') or \
-            self.checkBlockExists('REDE-A3'): 
-                self.message += ('Bloco de folha na R16\n')
+            self.checkBlockExists('REDE-A3'):
+                self.errorDrawing.edOB['booleanValue'] = True
+                self.errorDrawing.edOB['description'] += 'REDE - Bloco de folha na R16\n'
 
     # Função para verificar se a Layer Existe
     def checkLayerInR16(self):
         if "CONTOUR EXI" in self.docDXF.layers:
-            self.message += f'A Layer CONTOUR EXI existe no arquivo\n'
+            self.errorDrawing.edLA['booleanValue'] = True
+            self.errorDrawing.edLA['description'] += 'CONTOUR EXI\n'
+

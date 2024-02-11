@@ -5,6 +5,7 @@ package-lock.json
 config.json
 discloud.config
 BLOCO-BRANCO.dxf
+test.py
 *.xlsx
 *.dwl2
 *.dwl

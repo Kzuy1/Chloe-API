@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, send_file, make_response
 from waitress import serve
 from excelToDXF import listToDXF
-from verifyDXF import veriftDrawingDXF
+from verifyDXF import verifyDrawingDXF
 import os
 import asyncio
 import sys
@@ -33,7 +33,7 @@ def routeVerifyDrawing():
         drawingFile = os.path.join('drawingSaves', fileName)
         file.save(drawingFile)
 
-        verifyDrawing = veriftDrawingDXF(drawingFile)
+        verifyDrawing = verifyDrawingDXF(drawingFile)
         return make_response(verifyDrawing.message, 200, {'Content-Type': 'text/plain'})
     else:
         return jsonify({'message': 'Nenhum arquivo enviado.'}), 400
