@@ -15,6 +15,8 @@ class verifyDrawingDXF:
 
         self.checkCorrectSeparation()
         self.checksubtitleBlock()
+        self.checkRevisionBlock()
+        self.checkLineScaleFactor()
         self.checkBlockInR16()
         self.checkLayerInR16()
 
@@ -100,6 +102,21 @@ class verifyDrawingDXF:
         # Verifica se o desenho foi feito por EMB
         if 'SIGLA' in self.subtitleBlock and self.subtitleBlock['SIGLA'] != 'EMB' :
             self.errorDrawing.ed04['booleanValue'] = True
+
+    # Função para verificar Escala dos Blocos de Revisão
+    def checkRevisionBlock(self):
+        for insert in self.mspDXF.query('INSERT[name=="REDECAM_REVISION"]'):
+            scaleX = abs(insert.get_dxf_attrib('xscale'))
+
+            if abs(self.subtitleBlock['x_scale'] - scaleX) > 0.0001 :
+                self.errorDrawing.ed05['booleanValue'] = True
+
+    # Função para verificar o LTScale
+    def checkLineScaleFactor(self):
+        ltscale = self.docDXF.header['$LTSCALE']
+
+        if abs(self.subtitleBlock['x_scale']/2 - ltscale) > 0.0001  :
+            self.errorDrawing.ed06['booleanValue'] = True
 
     # Função para verificar se um bloco existe no Desenho
     def checkBlockExists(self, blockName):
