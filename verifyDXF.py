@@ -89,7 +89,7 @@ class verifyDrawingDXF:
             }
 
             for key, keyValue in keyCodes.items():
-                if self.subtitleBlock[key] != keyValue:
+                if self.subtitleBlock[key]['value'] != keyValue:
                     
                     self.errorDrawing.ed02['booleanValue'] = True
                     break
@@ -100,7 +100,15 @@ class verifyDrawingDXF:
             self.errorDrawing.ed03['booleanValue'] = True
 
         # Verifica se o desenho foi feito por EMB
-        if 'SIGLA' in self.subtitleBlock and self.subtitleBlock['SIGLA'] != 'EMB' :
+        if 'SIGLA' in self.subtitleBlock and self.subtitleBlock['SIGLA']['value'] != 'EMB' :
+            self.errorDrawing.ed04['booleanValue'] = True
+        
+        # Verifica se o desenho foi aprovado por VOL
+        if 'S-CONT' in self.subtitleBlock and self.subtitleBlock['S-CONT']['value'] != 'VOL' :
+            self.errorDrawing.ed04['booleanValue'] = True
+
+        # Verifica se o desenho foi aprovado por VOL
+        if 'APPROVATO' in self.subtitleBlock and self.subtitleBlock['APPROVATO']['value'] != '' :
             self.errorDrawing.ed04['booleanValue'] = True
 
     # Função para verificar Escala dos Blocos de Revisão
@@ -129,18 +137,18 @@ class verifyDrawingDXF:
     def checkBlockInR16(self):
         blocksToCheck = [
             ('REDECAM_REVISION', 'Bloco de Revisão\n'),
-            ('TABELLA COPPIE SERRAGGIO - METRICO', 'Tabela de Torque na R16\n'),
-            ('PARTICOLARE-GUARNIZIONE', 'Bloco Gasket na R16\n'),
-            ('MARCA', 'Bloco Marca na R16\n'),
-            ('LIVELLO-ALZATO', 'Bloco de Nível na R16\n'),
-            ('LIVELLO-PIANTA', 'Bloco de Nível para Superficie na R16\n'),
-            ('TIPICO-SALDATURA_FLANGE-L', 'Bloco de Solda no Flange R16\n'),
-            ('TIPICO-SALDATURA_FLANGE-PIANE', 'Bloco de Solda com Chapa no Flange R16\n'),
-            ('EMB_LISTA_DE_MATERIAL', 'Bloco de Material R16\n'),
-            ('EMB_LISTA_DE_MATERIAL_INFO_ING', 'Bloco de Material das Informações na R16\n'),
-            ('EMB_LISTA_DE_MATERIAL_DESCRITIVO_ING', 'Bloco de Material das Descrições na R16\n'),
-            ('EMB_LISTA_DE_MATERIAL_INFO', 'Bloco de Material das Informações na R16\n'),
-            ('EMB_LISTA_DE_MATERIAL_DESCRITIVO', 'Bloco de Material das Descrições na R16\n')
+            ('TABELLA COPPIE SERRAGGIO - METRICO', 'Tabela de Torque\n'),
+            ('PARTICOLARE-GUARNIZIONE', 'Bloco Gasket\n'),
+            ('MARCA', 'Bloco Marca\n'),
+            ('LIVELLO-ALZATO', 'Bloco de Nível\n'),
+            ('LIVELLO-PIANTA', 'Bloco de Nível para Superficie\n'),
+            ('TIPICO-SALDATURA_FLANGE-L', 'Bloco de Solda no Flange\n'),
+            ('TIPICO-SALDATURA_FLANGE-PIANE', 'Bloco de Solda com Chapa no Flange\n'),
+            ('EMB_LISTA_DE_MATERIAL', 'Bloco de Material\n'),
+            ('EMB_LISTA_DE_MATERIAL_INFO_ING', 'Bloco de Material das Informações\n'),
+            ('EMB_LISTA_DE_MATERIAL_DESCRITIVO_ING', 'Bloco de Material das Descrições\n'),
+            ('EMB_LISTA_DE_MATERIAL_INFO', 'Bloco de Material das Informações\n'),
+            ('EMB_LISTA_DE_MATERIAL_DESCRITIVO', 'Bloco de Material das Descrições\n')
         ]
 
         for blockName in blocksToCheck:
@@ -154,7 +162,7 @@ class verifyDrawingDXF:
         if self.checkBlockExists('TIPICO-SALDATURA_ENG-POR') or \
             self.checkBlockExists('TIPICO-SALDATURA_ITA-ENG'): 
                 self.errorDrawing.edOB['booleanValue'] = True
-                self.errorDrawing.edOB['description'] += 'TIPICO-SALDATURA - Bloco de Solda na R16\n'
+                self.errorDrawing.edOB['description'] += 'TIPICO-SALDATURA - Bloco de Solda\n'
 
         # Verificação de blocos de formato
         if self.checkBlockExists('REDE-A0') or \
@@ -162,11 +170,10 @@ class verifyDrawingDXF:
             self.checkBlockExists('REDE-A2') or \
             self.checkBlockExists('REDE-A3'):
                 self.errorDrawing.edOB['booleanValue'] = True
-                self.errorDrawing.edOB['description'] += 'REDE - Bloco de folha na R16\n'
+                self.errorDrawing.edOB['description'] += 'REDE - Bloco de folha\n'
 
     # Função para verificar se a Layer Existe
     def checkLayerInR16(self):
         if "CONTOUR EXI" in self.docDXF.layers:
-            self.errorDrawing.edLA['booleanValue'] = True
-            self.errorDrawing.edLA['description'] += 'CONTOUR EXI\n'
+            self.errorDrawing.ed07['booleanValue'] = True
 
