@@ -75,7 +75,7 @@ class verifyDrawingDXF:
         if 'REV-CARTIGLIO_1_0' in self.subtitleBlock:
             if (2 * self.subtitleBlock['x_scale'] - self.subtitleBlock['REV-CARTIGLIO_1_0']['height']) > 0.01:
                 self.errorDrawing.edOB['booleanValue'] = True
-                self.errorDrawing.edOB['description'] += "REDECAM-TITOLO-TAVOLA - Bloco de Legenda\n"
+                self.errorDrawing.edOB['description'] += "\t\tREDECAM-TITOLO-TAVOLA - Bloco de Legenda\n"
 
         # Verifica cada chave e seu valor correspondente somente se o Error 01 não tiver ativo
         if self.errorDrawing.ed01['booleanValue'] == False:
@@ -156,13 +156,13 @@ class verifyDrawingDXF:
 
             if verifyBlock: 
                 self.errorDrawing.edOB['booleanValue'] = True
-                self.errorDrawing.edOB['description'] += blockName[0] + " - " + blockName[1]
+                self.errorDrawing.edOB['description'] += '\t\t' + blockName[0] + " - " + blockName[1]
         
         # Verificação de blocos de Solda
         if self.checkBlockExists('TIPICO-SALDATURA_ENG-POR') or \
             self.checkBlockExists('TIPICO-SALDATURA_ITA-ENG'): 
                 self.errorDrawing.edOB['booleanValue'] = True
-                self.errorDrawing.edOB['description'] += 'TIPICO-SALDATURA - Bloco de Solda\n'
+                self.errorDrawing.edOB['description'] += '\t\tTIPICO-SALDATURA - Bloco de Solda\n'
 
         # Verificação de blocos de formato
         if self.checkBlockExists('REDE-A0') or \
@@ -170,7 +170,7 @@ class verifyDrawingDXF:
             self.checkBlockExists('REDE-A2') or \
             self.checkBlockExists('REDE-A3'):
                 self.errorDrawing.edOB['booleanValue'] = True
-                self.errorDrawing.edOB['description'] += 'REDE - Bloco de folha\n'
+                self.errorDrawing.edOB['description'] += '\t\tREDE - Bloco de folha\n'
 
     # Função para verificar se a Layer Existe
     def checkLayerInR16(self):

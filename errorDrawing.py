@@ -21,7 +21,7 @@ class errorDrawing:
                     stringError.append(stringMessage)
                     stringMessage = messageError
                 else:
-                    stringMessage += messageError
+                    stringMessage += messageError + "\n"
         stringError.append(stringMessage)
 
         return stringError
