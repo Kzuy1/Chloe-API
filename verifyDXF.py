@@ -136,7 +136,7 @@ class verifyDrawingDXF:
     # Função para verificar os blocos que estão no R16
     def checkBlockInR16(self):
         blocksToCheck = [
-            ('REDE-DISTINTA-REVISIONE', 'Bloco de Revisão na R16\n'),
+            ('REDECAM_REVISION', 'Bloco de Revisão na R16\n'),
             ('TABELLA COPPIE SERRAGGIO - METRICO', 'Tabela de Torque na R16\n'),
             ('PARTICOLARE-GUARNIZIONE', 'Bloco Gasket na R16\n'),
             ('MARCA', 'Bloco Marca na R16\n'),
