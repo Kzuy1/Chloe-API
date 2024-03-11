@@ -12,11 +12,14 @@ class verifyDrawingDXF:
         self.docDXF = ezdxf.readfile(self.fullPath)
         self.mspDXF = self.docDXF.modelspace()
         self.subtitleBlock = self.getSubtitleBlock()
+        self.revisionBlocks = self.getBlockInfo("REDE-DISTINTA-REVISIONE")
+        self.partBlocks = self.getBlockInfo('ABC')
 
         self.checkCorrectSeparation()
         self.checksubtitleBlock()
         self.checkRevisionBlock()
         self.checkLineScaleFactor()
+        self.checkLeader()
         self.checkBlockInR16()
         self.checkLayerInR16()
 
@@ -38,6 +41,26 @@ class verifyDrawingDXF:
 
         return codeSeparate
     
+    # Função para pegar as informações de Blocos
+    def getBlockInfo(self, blockName):
+        blocksList = []
+
+        for insert in self.mspDXF.query('INSERT[name=="{blockName}"]'):
+            blockInfo = {}
+            for attrib in insert.attribs:
+                tag = attrib.dxf.tag
+                value = attrib.dxf.text
+                height = attrib.dxf.height
+
+                blockInfo[tag] = {'value': value, 'height': height}
+            blockInfo['x_scale'] = insert.get_dxf_attrib('xscale') or 1
+            blockInfo['y_scale'] = insert.get_dxf_attrib('yscale') or 1
+            blockInfo['z_scale'] = insert.get_dxf_attrib('zscale') or 1
+
+            blocksList.append(blockInfo)
+        
+        return blocksList
+
     # Função para pegar as informações do Bloco de Título do Desenho
     def getSubtitleBlock(self):
         subtitleBlock = {}
@@ -54,6 +77,27 @@ class verifyDrawingDXF:
 
         return subtitleBlock
     
+    # Função para pegar as informações do Bloco de Revisão
+    # def getRevisionBlock(self):
+    #     revisionBlocks = []
+    #     for insert in self.mspDXF.query('INSERT[name=="REDE-DISTINTA-REVISIONE"]'):
+    #         revisionBlock = {}
+    #         for attrib in insert.attribs:
+    #             tag = attrib.dxf.tag
+    #             value = attrib.dxf.text
+
+    #             revisionBlock[tag] = value
+    #         revisionBlock['x_scale'] = insert.get_dxf_attrib('xscale') or 1
+    #         revisionBlock['y_scale'] = insert.get_dxf_attrib('yscale') or 1
+    #         revisionBlock['z_scale'] = insert.get_dxf_attrib('zscale') or 1
+
+    #         revisionBlocks.append(revisionBlock)
+        
+    #     # Ordenar a lista de blocos de revisão com base no valor 'REV-N' em ordem ascendente
+    #     revisionBlocks = sorted(revisionBlocks, key=lambda x: int(x['REV-N']))
+        
+    #     return revisionBlocks
+
     # Função para verificar se está separado certo o codigo
     def checkCorrectSeparation(self):
         regexCode = r'^[A-Z0-9]+-[A-Z0-9]+_[A-Z0-9]+-[A-Z0-9]+-[A-Z0-9]+_[A-Z0-9]+$'
@@ -113,10 +157,9 @@ class verifyDrawingDXF:
 
     # Função para verificar Escala dos Blocos de Revisão
     def checkRevisionBlock(self):
-        for insert in self.mspDXF.query('INSERT[name=="REDECAM_REVISION"]'):
-            scaleX = abs(insert.get_dxf_attrib('xscale'))
+        for revisionBlock in self.revisionBlocks:
 
-            if abs(self.subtitleBlock['x_scale'] - scaleX) > 0.0001 :
+            if abs(self.subtitleBlock['x_scale'] - revisionBlock['x_scale']) > 0.0001 :
                 self.errorDrawing.ed05['booleanValue'] = True
 
     # Função para verificar o LTScale
@@ -126,8 +169,14 @@ class verifyDrawingDXF:
         if abs(self.subtitleBlock['x_scale']/2 - ltscale) > 0.0001  :
             self.errorDrawing.ed06['booleanValue'] = True
 
+    # Função para verificar as Leader
+    def checkLeader(self):
+        for leader in self.mspDXF.query('LEADER'):
+            if leader.dxf.layer != 'QUOTE':
+                self.errorDrawing.ed08['booleanValue'] = True
+
     # Função para verificar se um bloco existe no Desenho
-    def checkBlockExists(self, blockName):
+    def _checkBlockExists(self, blockName):
         block = self.docDXF.blocks.get(blockName)
 
         if block is not None:
@@ -152,23 +201,23 @@ class verifyDrawingDXF:
         ]
 
         for blockName in blocksToCheck:
-            verifyBlock = self.checkBlockExists(blockName[0])
+            verifyBlock = self._checkBlockExists(blockName[0])
 
             if verifyBlock: 
                 self.errorDrawing.edOB['booleanValue'] = True
                 self.errorDrawing.edOB['description'] += '\t\t' + blockName[0] + " - " + blockName[1]
         
         # Verificação de blocos de Solda
-        if self.checkBlockExists('TIPICO-SALDATURA_ENG-POR') or \
-            self.checkBlockExists('TIPICO-SALDATURA_ITA-ENG'): 
+        if self._checkBlockExists('TIPICO-SALDATURA_ENG-POR') or \
+            self._checkBlockExists('TIPICO-SALDATURA_ITA-ENG'): 
                 self.errorDrawing.edOB['booleanValue'] = True
                 self.errorDrawing.edOB['description'] += '\t\tTIPICO-SALDATURA - Bloco de Solda\n'
 
         # Verificação de blocos de formato
-        if self.checkBlockExists('REDE-A0') or \
-            self.checkBlockExists('REDE-A1') or \
-            self.checkBlockExists('REDE-A2') or \
-            self.checkBlockExists('REDE-A3'):
+        if self._checkBlockExists('REDE-A0') or \
+            self._checkBlockExists('REDE-A1') or \
+            self._checkBlockExists('REDE-A2') or \
+            self._checkBlockExists('REDE-A3'):
                 self.errorDrawing.edOB['booleanValue'] = True
                 self.errorDrawing.edOB['description'] += '\t\tREDE - Bloco de folha\n'
 
@@ -176,4 +225,3 @@ class verifyDrawingDXF:
     def checkLayerInR16(self):
         if "CONTOUR EXI" in self.docDXF.layers:
             self.errorDrawing.ed07['booleanValue'] = True
-
