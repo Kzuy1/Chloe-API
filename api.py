@@ -1,7 +1,8 @@
 from flask import Flask, request, jsonify, send_file, make_response
 from waitress import serve
 from excelToDXF import listToDXF
-from verifyDXF import verifyDrawingDXF
+from verifyDXF import Drawing
+from datetime import datetime
 import os
 import asyncio
 import sys
@@ -28,12 +29,18 @@ def upload_file():
 @app.route('/verify', methods=['POST'])
 def routeVerifyDrawing():
     file = request.files['file']
+    dataIssue = request.form['data']
+
     if file:
-        fileName = file.filename
+        # Adiciona no começo do arquivo a horário atual na ISO 8601
+        currentTime = datetime.now().isoformat()
+        fileCurrentTime = currentTime.replace(':', '-')
+        fileName = fileCurrentTime + '_' + file.filename
+
         drawingFile = os.path.join('drawingSaves', fileName)
         file.save(drawingFile)
 
-        verifyDrawing = verifyDrawingDXF(drawingFile)
+        verifyDrawing = Drawing(drawingFile, dataIssue)
         return make_response(verifyDrawing.message, 200, {'Content-Type': 'text/plain'})
     else:
         return jsonify({'message': 'Nenhum arquivo enviado.'}), 400
@@ -55,6 +62,6 @@ loop.set_exception_handler(unhandled_rejection_handler)
 # if __name__ == '__main__':
 #     app.run(debug=True)
 
-# # Opção para produção
+# Opção para produção
 if __name__ == '__main__':
     serve(app, host="0.0.0.0", port=8080)
