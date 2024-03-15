@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, send_file, make_response
 from waitress import serve
 from excelToDXF import listToDXF
-from verifyDXF import Drawing
+from verifyDXF.Drawing import Drawing
 from datetime import datetime
 import os
 import asyncio
@@ -59,9 +59,9 @@ asyncio.set_event_loop(loop)
 loop.set_exception_handler(unhandled_rejection_handler)
 
 # Opção para testes
-# if __name__ == '__main__':
-#     app.run(debug=True)
+if __name__ == '__main__':
+    app.run(debug=True)
 
 # Opção para produção
-if __name__ == '__main__':
-    serve(app, host="0.0.0.0", port=8080)
+# if __name__ == '__main__':
+#     serve(app, host="0.0.0.0", port=8080)
