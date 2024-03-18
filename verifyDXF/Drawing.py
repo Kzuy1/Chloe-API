@@ -19,6 +19,8 @@ class Drawing:
         self.subtitle_block = self.get_block_info('REDECAM-TITOLO-TAVOLA')
         self.revision_blocks = self.get_block_info('REDE-DISTINTA-REVISIONE')
         self.revision_blocks = self.sort_block(self.revision_blocks, 'REV-N')
+        self.part_blocks = self.get_block_info('REDECAM-DISTINTA_monolingua')
+        self.part_blocks = self.sort_block(self.part_blocks, 'MARCA')
 
         #Verifica se existe dois ou mais Bloco de Título no mesmo Desenho, 
         if len(self.subtitle_block) != 1:
