@@ -20,7 +20,6 @@ class Drawing:
         self.revision_blocks = self.get_block_info('REDE-DISTINTA-REVISIONE')
         self.revision_blocks = self.sort_block(self.revision_blocks, 'REV-N')
         self.part_blocks = self.get_block_info('REDECAM-DISTINTA_monolingua')
-        self.part_blocks = self.sort_block(self.part_blocks, 'MARCA')
 
         #Verifica se existe dois ou mais Bloco de Título no mesmo Desenho, 
         if len(self.subtitle_block) != 1:
@@ -35,8 +34,10 @@ class Drawing:
         self.check_correct_separation()
         self.check_subtitle_block()
         self.check_revision_block()
+        self.check_part_block()
         self.check_line_scale_factor()
         self.check_leader()
+        self.check_notes()
         self.check_block_in_R16()
         self.check_layer_in_R16()
 
@@ -72,11 +73,13 @@ class Drawing:
             block_info = {}
             
             for attrib in insert.attribs:
+                print(attrib)
                 tag = attrib.dxf.tag
                 value = attrib.dxf.text
                 height = attrib.dxf.height
+                width_factor = attrib.dxf.width
 
-                block_info[tag] = {'value': value, 'height': height}
+                block_info[tag] = {'value': value, 'height': height, 'width_factor': width_factor}
             block_info['x_scale'] = insert.get_dxf_attrib('xscale') or 1
             block_info['y_scale'] = insert.get_dxf_attrib('yscale') or 1
             block_info['z_scale'] = insert.get_dxf_attrib('zscale') or 1
@@ -177,22 +180,23 @@ class Drawing:
             self._concat_blockname_error('REDECAM_REVISION', 'Bloco de Revisão')
             return
         
-        if self.error_drawing.ed01['boolean_value'] or len(self.revision_blocks) != (int(self.file_drawing_code_separate[5]) + 1):
-            self.error_drawing.ed12['boolean_value'] = True
-            return
-
         for revision_block in self.revision_blocks:
-            # Verifica Bloco de Revisão até última Revisão se está Preenchido
-            if int(revision_block['REV-N']['value']) <= int(self.file_drawing_code_separate[5]):
-                for attribs in revision_block.values():
-                    if isinstance(attribs, dict) and attribs['value'] == None:
-                        self.error_drawing.ed12['boolean_value'] = True
-
             # Verifica Escala do Bloco de Revisão
             if abs(self.subtitle_block['x_scale'] - revision_block['x_scale']) > 0.0001 :
                 self.error_drawing.edSC['boolean_value'] = True
                 self.error_drawing.edSC['description'] += '\t\t REDE-DISTINTA-REVISIONE - Bloco de Revisão ' + revision_block['REV-N']['value']
+
+        # Verifica Bloco de Revisão atual está Preenchido
+        if len(self.revision_blocks) < int(self.file_drawing_code_separate[5]) + 1:
+            self.error_drawing.ed12['boolean_value'] = True
+            return
         
+        current_review_block = self.revision_blocks[int(self.file_drawing_code_separate[5])]
+        for attribs in current_review_block.values():
+            if isinstance(attribs, dict) and attribs['value'] == None:
+                self.error_drawing.ed12['boolean_value'] = True
+                return
+
         # Verifica se a data Bloco de Revisão 0 é o mesmo no Bloco de Legenda
         if self.revision_blocks[0]['REV-D']['value'] != self.subtitle_block['DATA']['value']:
             self.error_drawing.ed10['boolean_value'] = True
@@ -201,10 +205,34 @@ class Drawing:
         if self.revision_blocks[int(self.file_drawing_code_separate[5])]['REV-D']['value'] != self.subtitle_block['D-REV']['value']:
             self.error_drawing.ed11['boolean_value'] = True
         
-        # # Verifica se a data da revisão atual do desenho condiz com a Date de Emissão do Usuário, Padrão: Data de Hoje
+        # Verifica se a data da revisão atual do desenho condiz com a Date de Emissão do Usuário, Padrão: Data de Hoje
         if self.revision_blocks[int(self.file_drawing_code_separate[5])]['REV-D']['value'] != self.data_issue:
             self.error_drawing.ed13['boolean_value'] = True
             self.error_drawing.ed13['description'] += self.data_issue
+
+    # Função para verficar Blocos de Peças
+    def check_part_block(self):
+        for part_block in self.part_blocks:
+            # Verifica se o Peso está com vírgula
+            if ',' in part_block["PESO-CAD"]['value'] or ',' in part_block["TOTALE"]['value']:
+                self.error_drawing.ed15['boolean_value'] = True
+
+            # Verifica se a descrição está com vírgula
+            if ',' in part_block['DESCRIZIONE-IN-R1']['value']:
+                self.error_drawing.ed17['boolean_value'] = True
+
+            # Verifica se a multiplicação do peso bate
+            part_qty = float(part_block["QUANTITA'"]['value'])
+            part_weight = float(part_block["PESO-CAD"]['value'].replace(',', '.'))
+            part_total_weight = float(part_block["TOTALE"]['value'].replace(',', '.'))
+            
+            if abs(part_qty * part_weight - part_total_weight) > 0.0001:
+                self.error_drawing.ed16['boolean_value'] = True
+
+            # Verifica se o Atributo MARCA do Blocos de Peças está com Fator de Largura de 0.7
+            print(part_block['MARCA']['width_factor'])
+            if abs(part_block['MARCA']['width_factor'] - 0.7) > 0.0001:
+                self.error_drawing.ed19['boolean_value'] = True
 
     # Função para verificar o LTScale
     def check_line_scale_factor(self):
@@ -213,12 +241,22 @@ class Drawing:
         if abs(self.subtitle_block['x_scale']/2 - ltscale) > 0.0001  :
             self.error_drawing.ed06['boolean_value'] = True
 
-    # Função para verificar as Leader
+    # Função para verificar as linhas de chamadas
     def check_leader(self):
         for leader in self.msp_dxf.query('LEADER'):
             if leader.dxf.layer != 'QUOTE':
                 self.error_drawing.ed08['boolean_value'] = True
                 return
+
+    # Função para verificar as Notas
+    def check_notes(self):
+        for entity in self.msp_dxf:
+            # Verifica se a nota de marcação está correta
+            if entity.dxftype() == 'TEXT' and '/...' in entity.dxf.text :
+                indentify_mark = f"{self.file_drawing_code_separate[2]}-{self.file_drawing_code_separate[3]}-{self.file_drawing_code_separate[4]}/..."
+                if(entity.dxf.text != indentify_mark) :
+                    self.error_drawing.ed18['boolean_value'] = True
+                    self.error_drawing.ed18['description'] += f' Correto: {indentify_mark}'
 
     # Função para verificar se um bloco existe no Desenho
     def _checkBlockExists(self, blockName):
