@@ -37,7 +37,8 @@ class Drawing:
         self.check_part_block()
         self.check_line_scale_factor()
         self.check_leader()
-        self.check_notes()
+        self.check_notes_mark()
+        self.check_dimensions_indicate()
         self.check_block_in_R16()
         self.check_layer_in_R16()
 
@@ -73,7 +74,6 @@ class Drawing:
             block_info = {}
             
             for attrib in insert.attribs:
-                print(attrib)
                 tag = attrib.dxf.tag
                 value = attrib.dxf.text
                 height = attrib.dxf.height
@@ -181,10 +181,16 @@ class Drawing:
             return
         
         for revision_block in self.revision_blocks:
+            # Verifica Bloco de Revisão até última Revisão se está Preenchido
+            if int(revision_block['REV-N']['value']) <= int(self.file_drawing_code_separate[5]):
+                for attribs in revision_block.values():
+                    if isinstance(attribs, dict) and attribs['value'] == None:
+                        self.error_drawing.ed12['boolean_value'] = True
+
             # Verifica Escala do Bloco de Revisão
             if abs(self.subtitle_block['x_scale'] - revision_block['x_scale']) > 0.0001 :
                 self.error_drawing.edSC['boolean_value'] = True
-                self.error_drawing.edSC['description'] += '\t\t REDE-DISTINTA-REVISIONE - Bloco de Revisão ' + revision_block['REV-N']['value']
+                self.error_drawing.edSC['description'] += f'\t\t\tREDE-DISTINTA-REVISIONE - Bloco de Revisão {revision_block["REV-N"]["value"]}\n'
 
         # Verifica Bloco de Revisão atual está Preenchido
         if len(self.revision_blocks) < int(self.file_drawing_code_separate[5]) + 1:
@@ -212,6 +218,9 @@ class Drawing:
 
     # Função para verficar Blocos de Peças
     def check_part_block(self):
+        sum_weight = 0
+        sum_weight_withou_rock = 0
+
         for part_block in self.part_blocks:
             # Verifica se o Peso está com vírgula
             if ',' in part_block["PESO-CAD"]['value'] or ',' in part_block["TOTALE"]['value']:
@@ -229,10 +238,28 @@ class Drawing:
             if abs(part_qty * part_weight - part_total_weight) > 0.0001:
                 self.error_drawing.ed16['boolean_value'] = True
 
+            # Realiza soma do peso total e soma do peso somente das peças de aço.
+            sum_weight += part_total_weight
+            if not any(keyword in part_block['DESCRIZIONE-IN-R1']['value'] for keyword in ['ROCHA', 'ROCK']):
+                sum_weight_withou_rock += part_total_weight
+
             # Verifica se o Atributo MARCA do Blocos de Peças está com Fator de Largura de 0.7
-            print(part_block['MARCA']['width_factor'])
             if abs(part_block['MARCA']['width_factor'] - 0.7) > 0.0001:
                 self.error_drawing.ed19['boolean_value'] = True
+        
+        # Verifica se a nota de Peso Total Aprox. está próxima da soma dos pesos dos blocos brancos
+        for entity in self.msp_dxf:
+            if entity.dxftype() == 'TEXT' and entity.dxf.layer == 'CONTORNI' and 'kg' in entity.dxf.text:
+                compare_weight = sum_weight
+
+                if any(keyword in entity.dxf.text for keyword in ['STEELWORK', 'AÇO']):
+                    compare_weight = sum_weight_withou_rock
+
+                total_weight_approx = re.sub(r'\D', '', entity.dxf.text)
+
+                if abs(round(compare_weight) - float(total_weight_approx)) > 0.1:
+                    self.error_drawing.ed20['boolean_value'] = True
+                    break
 
     # Função para verificar o LTScale
     def check_line_scale_factor(self):
@@ -248,16 +275,42 @@ class Drawing:
                 self.error_drawing.ed08['boolean_value'] = True
                 return
 
-    # Função para verificar as Notas
-    def check_notes(self):
+    # Função para verificar as Notas de a nota de marcação está correta
+    def check_notes_mark(self):
         for entity in self.msp_dxf:
-            # Verifica se a nota de marcação está correta
             if entity.dxftype() == 'TEXT' and '/...' in entity.dxf.text :
                 indentify_mark = f"{self.file_drawing_code_separate[2]}-{self.file_drawing_code_separate[3]}-{self.file_drawing_code_separate[4]}/..."
-                if(entity.dxf.text != indentify_mark) :
+                if entity.dxf.text != indentify_mark :
                     self.error_drawing.ed18['boolean_value'] = True
                     self.error_drawing.ed18['description'] += f' Correto: {indentify_mark}'
+                    return
+    
+    # Função para verificar as especificações da Cotas
+    def check_dimensions_indicate(self):
+        dim_styles = self.doc_dxf.dimstyles
 
+        for dim_style in dim_styles:
+            dim_name = dim_style.dxf.name
+            if dim_name == 'Standard':
+                continue
+            
+            # Verifica se o Estilo de Cota está no PorCamada
+            if dim_style.dxf.dimclrd != 256 or dim_style.dxf.dimclre != 256:
+                self.error_drawing.ed21['boolean_value'] = True
+                self.error_drawing.ed21['description'] += f'\t\t\t{dim_name}\n'
+
+            # Verifica se a Escala da Cota está no padrão do formato
+            if  abs(self.subtitle_block['x_scale'] - dim_style.dxf.dimscale) > 0.0001:
+                self.error_drawing.ed22['boolean_value'] = True
+                self.error_drawing.ed22['description'] += f'\t\t\t{dim_name}\n'
+
+            # Verifica o fator de Escada da Cota está correto
+            scale_factor = round(dim_style.dxf.dimlfac * self.subtitle_block['x_scale'], 1)
+            scale_factor = re.sub(r'\b(\d+)\.0\b', r'\1', str(scale_factor))
+            if scale_factor not in dim_style.dxf.name:
+                self.error_drawing.ed23['boolean_value'] = True
+                self.error_drawing.ed23['description'] += f'\t\t\t{dim_name}\n'
+                
     # Função para verificar se um bloco existe no Desenho
     def _checkBlockExists(self, blockName):
         block = self.doc_dxf.blocks.get(blockName)
@@ -268,7 +321,7 @@ class Drawing:
     # Função adicionar nome do Bloco e Descrição no Error EDOB
     def _concat_blockname_error(self, block_name, description):
         self.error_drawing.edOB['boolean_value'] = True
-        self.error_drawing.edOB['description'] += f'\t\t{block_name} - {description}\n'
+        self.error_drawing.edOB['description'] += f'\t\t\t{block_name} - {description}\n'
 
     # Função para verificar os blocos que estão no R16
     def check_block_in_R16(self):
@@ -295,7 +348,7 @@ class Drawing:
         if self._checkBlockExists('TIPICO-SALDATURA_ENG-POR') or \
             self._checkBlockExists('TIPICO-SALDATURA_ITA-ENG'): 
                 self.error_drawing.edOB['boolean_value'] = True
-                self.error_drawing.edOB['description'] += '\t\tTIPICO-SALDATURA - Bloco de Solda\n'
+                self.error_drawing.edOB['description'] += '\t\t\tTIPICO-SALDATURA - Bloco de Solda\n'
 
         # Verificação de Blocos do Formato
         if self._checkBlockExists('REDE-A0') or \
@@ -303,7 +356,7 @@ class Drawing:
             self._checkBlockExists('REDE-A2') or \
             self._checkBlockExists('REDE-A3'):
                 self.error_drawing.edOB['boolean_value'] = True
-                self.error_drawing.edOB['description'] += '\t\tREDE - Bloco de folha\n'
+                self.error_drawing.edOB['description'] += '\t\t\tREDE - Bloco de folha\n'
             
         # Verificação do Bloco de Junta
         if self._checkBlockExists('REDECAM-GUARNIZIONI_monolingua'):
@@ -316,7 +369,7 @@ class Drawing:
             
             # Caso não tenha informa que o Bloco está na Versão antiga
             self.error_drawing.edOB['boolean_value'] = True
-            self.error_drawing.edOB['description'] += '\t\tREDECAM-GUARNIZIONI - Bloco de Junta\n'
+            self.error_drawing.edOB['description'] += '\t\t\tREDECAM-GUARNIZIONI - Bloco de Junta\n'
 
     # Função para verificar se a Layer Existe
     def check_layer_in_R16(self):

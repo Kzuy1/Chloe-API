@@ -19,6 +19,10 @@ class ErrorDrawing:
         self.ed17 = {'description': ':lady_beetle: [Error ED17:](https://discord.com/channels/1122685290205679748/1207328035108298804/1219751501984174171) Blocos de Peca com vírgula na descrição.','boolean_value': False }
         self.ed18 = {'description': ':lady_beetle: [Error ED18:](https://discord.com/channels/1122685290205679748/1207328035108298804/1219752299564367966) Nota com Código de Identificação das peças diferente do Código do Desenho.','boolean_value': False }
         self.ed19 = {'description': ':lady_beetle: [Error ED19:](https://discord.com/channels/1122685290205679748/1207328035108298804/1219969862265470976) Fator de Largura do atributo Marca no  Bloco de Peça diferente de 0.7.','boolean_value': False }
+        self.ed20 = {'description': ':lady_beetle: [Error ED20:](https://discord.com/channels/1122685290205679748/1207328035108298804/1222617295998812250) Nota com Peso Aproximado está diferente da Soma dos Blocos de Peça.','boolean_value': False }
+        self.ed21 = {'description': ':lady_beetle: [Error ED21:](https://discord.com/channels/1122685290205679748/1207328035108298804/1222619991275339826) Cota com linha fora do Por Camada:\n','boolean_value': False }
+        self.ed22 = {'description': ':lady_beetle: [Error ED22:](https://discord.com/channels/1122685290205679748/1207328035108298804/1222621466126843987) Cota com escala global incorreta:\n','boolean_value': False }
+        self.ed23 = {'description': ':lady_beetle: [Error ED23:](https://discord.com/channels/1122685290205679748/1207328035108298804/1222623241215017052) Fator de Escala ou Nome da cota incorreta:\n','boolean_value': False }
         self.edSC = {'description': ':lady_beetle: [Error EDSB:](https://discord.com/channels/1122685290205679748/1207328035108298804/1217558592119378030) Lista de Blocos na escala errada:\n','boolean_value': False }
         self.edOB = {'description': ':lady_beetle: [Error EDOB:](https://discord.com/channels/1122685290205679748/1207328035108298804/1207359201446207538) Lista de Blocos na versão antiga:\n','boolean_value': False }
 
