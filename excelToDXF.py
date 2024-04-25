@@ -165,12 +165,17 @@ class listToDXF:
     for material in listMaterial:
       self.posForYBlock += 7
       materialBlockInsert = self.mspDXF.add_blockref(materialBlock.name, insert=(self.posForXBlock, self.posForYBlock, 0))
-      materialBlockInsert.add_attrib("POSICAO", material.position)
-      materialBlockInsert.add_attrib("DESCRICAO", material.description)
-      materialBlockInsert.add_attrib("UNIDADE", material.unit)
-      materialBlockInsert.add_attrib("QUANTIDADE", material.quantity)
-      materialBlockInsert.add_attrib("MATERIAL", material.composition)
-      materialBlockInsert.add_attrib("PESO", material.totalWeight)
+
+      values = {
+        "POSICAO": material.position,
+        "DESCRICAO": material.description,
+        "UNIDADE": material.unit,
+        "QUANTIDADE": material.quantity,
+        "MATERIAL": material.composition,
+        "PESO": material.totalWeight
+      }
+
+      materialBlockInsert.add_auto_attribs(values)
   
   # Função para adicionar o Bloco Descritivo de Material ao DXF
   def addDescriptionMaterialList(self):
@@ -193,20 +198,25 @@ class listToDXF:
     for piece in listPiece:
       self.posForYBlock += 6
       pieceBlockInsert = self.mspDXF.add_blockref(pieceBlock.name, insert=(self.posForXBlock, self.posForYBlock, 0))
-      pieceBlockInsert.add_attrib("MARCA", piece.cod)
-      pieceBlockInsert.add_attrib("DESCRIZIONE-IT", piece.description)
-      pieceBlockInsert.add_attrib("DESCRIZIONE-IN-R1", piece.description)
-      pieceBlockInsert.add_attrib("QUANTITA'", piece.quantity)
-      pieceBlockInsert.add_attrib("MATERIALE", piece.material)
-      pieceBlockInsert.add_attrib("PESO-CAD", piece.unitWeight)
-      pieceBlockInsert.add_attrib("TOTALE", piece.totalWeight)
-      pieceBlockInsert.add_attrib("LARGHEZZA", 0)
-      pieceBlockInsert.add_attrib("PROFONDITA'", 0)
-      pieceBlockInsert.add_attrib("ALTEZZA", 0)
-      pieceBlockInsert.add_attrib("CICLO-VERN-INT", 0)
-      pieceBlockInsert.add_attrib("CICLO-VERN-EST", 0)
-      pieceBlockInsert.add_attrib("VERNICIATURA-INT", 0)
-      pieceBlockInsert.add_attrib("VERNICIATURA-EST", 0)
+
+      values = {
+        "MARCA": piece.cod,
+        "DESCRIZIONE-IT": piece.description,
+        "DESCRIZIONE-IN-R1": piece.description,
+        "QUANTITA'": piece.quantity,
+        "MATERIALE": piece.material,
+        "PESO-CAD": piece.unitWeight,
+        "TOTALE": piece.totalWeight,
+        "LARGHEZZA": 0,
+        "PROFONDITA'": 0,
+        "ALTEZZA": 0,
+        "CICLO-VERN-INT": 0,
+        "CICLO-VERN-EST": 0,
+        "VERNICIATURA-INT": 0,
+        "VERNICIATURA-EST": 0
+      }
+
+      pieceBlockInsert.add_auto_attribs(values)
 
   # Função para adicionar mText ao DXF
   def addMtext(self, text, positionInsert, attributesMtext):
