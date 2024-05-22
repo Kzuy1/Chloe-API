@@ -377,7 +377,7 @@ class listToDXF:
     self.addMtext("  NA PARTE INDICADA NO DESENHO", (self.posForXBlock + 5, self.posForYBlock, 0), generalPropertiesNotes)
 
     self.posForYBlock += 5
-    self.addMtext("- OS COMPONENTE  MOSTRADOS COM # DEVEM SER MONTADOS NA FABRICAÇÃO", (self.posForXBlock + 5, self.posForYBlock, 0), generalPropertiesNotes)
+    self.addMtext("- OS COMPONENTES MOSTRADOS COM # DEVEM SER MONTADOS NA FABRICAÇÃO", (self.posForXBlock + 5, self.posForYBlock, 0), generalPropertiesNotes)
 
     self.posForYBlock += 7
     self.addMtext("- PARA NOTAS GERAIS DE CONSTRUÇÃO E FORNECIMENTO, VER ESPECIFICAÇÃO \"SR-R1-01\"", (self.posForXBlock + 5, self.posForYBlock, 0), generalPropertiesNotes)
