@@ -259,6 +259,7 @@ class Drawing:
 
                 if abs(round(compare_weight) - float(total_weight_approx)) > 0.1:
                     self.error_drawing.ed20['boolean_value'] = True
+                    self.error_drawing.ed20['description'] += f"{round(compare_weight)} kg"
                     break
 
     # Função para verificar o LTScale
