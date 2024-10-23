@@ -127,7 +127,7 @@ class Drawing:
             self.error_drawing.ed01['boolean_value'] = True
 
             if len(self.file_drawing_code_separate) == 6:
-                self.error_drawing.ed01['description'] += f' Correto: {self.file_drawing_code_separate[0]}-{self.file_drawing_code_separate[1]}_{self.file_drawing_code_separate[2]}-{self.file_drawing_code_separate[3]}-{self.file_drawing_code_separate[4]}_{self.file_drawing_code_separate[5]}\n'
+                self.error_drawing.ed01['description'] += f' Correto: {self.file_drawing_code_separate[0]}-{self.file_drawing_code_separate[1]}_{self.file_drawing_code_separate[2]}-{self.file_drawing_code_separate[3]}-{self.file_drawing_code_separate[4]}_{self.file_drawing_code_separate[5]}'
 
     # Função para verificar as informações do Bloco de Título do Desenho
     def check_subtitle_block(self):
