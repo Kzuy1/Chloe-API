@@ -1,6 +1,8 @@
 from verifyDXF.ErrorDrawing import ErrorDrawing
 from verifyDXF.Layer import LayerList
 from datetime import datetime
+from pymongo import MongoClient
+from json import load
 import ezdxf
 import os
 import re
@@ -12,6 +14,7 @@ class Drawing:
         self.data_issue = data_issue
         self.file_drawing_code = self.get_drawing_code()
         self.file_drawing_code_separate = self.get_drawing_code_separate()
+        self.drawnLanguage = self.findStandardLanguage()
         self.layer_list = LayerList()
         self.layer_list.add_default_layer()
         self.doc_dxf = ezdxf.readfile(self.full_path)
@@ -60,6 +63,24 @@ class Drawing:
         code_separate = sum(code_separate, [])
 
         return code_separate
+    
+    # Função para pegar a Standard do Banco de Dados.
+    def findStandardLanguage(self):
+        # Conectar ao MongoDB
+        with open('config.json', 'r') as fileConfig:
+            config = load(fileConfig)
+
+        # Procura no Banco de Dados - EMBRATECENG na Collection - Projects a informações de Standard do código do Projeto
+        mongoClient = MongoClient(config['mongoUrl'])
+        mongoDatabase = mongoClient.get_database('EMBRATECENG')
+        collectionProjects = mongoDatabase['projects']
+        result = collectionProjects.find_one({"cod": self.file_drawing_code_separate[0]})
+        mongoClient.close()
+
+        # Caso não ache use o Brazil como referencia
+        standarProject = result['standard'] if result else 'brazil'
+    
+        return standarProject
     
     # Função para verificar a Data de Emissão
     def check_data_issue(self):
@@ -181,12 +202,6 @@ class Drawing:
             return
         
         for revision_block in self.revision_blocks:
-            # Verifica Bloco de Revisão até última Revisão se está Preenchido
-            if int(revision_block['REV-N']['value']) <= int(self.file_drawing_code_separate[5]):
-                for attribs in revision_block.values():
-                    if isinstance(attribs, dict) and attribs['value'] == None:
-                        self.error_drawing.ed12['boolean_value'] = True
-
             # Verifica Escala do Bloco de Revisão
             if abs(self.subtitle_block['x_scale'] - revision_block['x_scale']) > 0.0001 :
                 self.error_drawing.edSC['boolean_value'] = True
@@ -196,10 +211,11 @@ class Drawing:
         if len(self.revision_blocks) < int(self.file_drawing_code_separate[5]) + 1:
             self.error_drawing.ed12['boolean_value'] = True
             return
-        
+
+        # Verifica Bloco de Revisão até última Revisão se está Preenchido
         current_review_block = self.revision_blocks[int(self.file_drawing_code_separate[5])]
         for attribs in current_review_block.values():
-            if isinstance(attribs, dict) and attribs['value'] == None:
+            if isinstance(attribs, dict) and attribs['value'] == '':
                 self.error_drawing.ed12['boolean_value'] = True
                 return
 
@@ -280,7 +296,11 @@ class Drawing:
     def check_notes_mark(self):
         for entity in self.msp_dxf:
             if entity.dxftype() == 'TEXT' and '/...' in entity.dxf.text :
-                indentify_mark = f"{self.file_drawing_code_separate[2]}-{self.file_drawing_code_separate[3]}-{self.file_drawing_code_separate[4]}/..."
+                if self.drawnLanguage == 'brazil' :
+                    indentify_mark = f"{self.file_drawing_code_separate[1]}_{self.file_drawing_code_separate[2]}-{self.file_drawing_code_separate[3]}-{self.file_drawing_code_separate[4]}/..."
+                else :
+                    indentify_mark = f"{self.file_drawing_code_separate[2]}-{self.file_drawing_code_separate[3]}-{self.file_drawing_code_separate[4]}/..."
+
                 if entity.dxf.text != indentify_mark :
                     self.error_drawing.ed18['boolean_value'] = True
                     self.error_drawing.ed18['description'] += f' Correto: {indentify_mark}'

@@ -224,7 +224,7 @@ class listToDXF:
     self.mspDXF.add_text(text=text, dxfattribs=attributesMtext)
 
   # Adiciona a Tag e o quadrado da Tag ao DXF
-  def addTagDraw(self, textPosition, retanglePoints):
+  def addTagDraw(self, text, textPosition, retanglePoints):
     tagPropertiesNotes = {
       "height": 3,
       "style": "ROMAND",
@@ -233,7 +233,7 @@ class listToDXF:
       "layer" : "CONTORNI",
     }
 
-    self.mspDXF.add_text(text="AA-BX-XX/...", dxfattribs=tagPropertiesNotes).set_placement(textPosition, align=TextEntityAlignment.CENTER)
+    self.mspDXF.add_text(text=text, dxfattribs=tagPropertiesNotes).set_placement(textPosition, align=TextEntityAlignment.CENTER)
         
     self.mspDXF.add_lwpolyline(
       points = retanglePoints,
@@ -325,7 +325,7 @@ class listToDXF:
       (self.posForXBlock + 78, self.posForYBlock - 2, 0), 
       (self.posForXBlock + 78, self.posForYBlock + 5, 0)
     ]
-    self.addTagDraw((self.posForXBlock + 95, self.posForYBlock, 0), rectanglePointsTag)
+    self.addTagDraw("AA-BN-NN/...", (self.posForXBlock + 95, self.posForYBlock, 0), rectanglePointsTag)
 
     self.posForYBlock += 8
     self.addMtext("%%uANNOTATIONS:%%u", (self.posForXBlock + 5, self.posForYBlock, 0), annotationsPropertiesNotes)
@@ -409,13 +409,14 @@ class listToDXF:
     
     self.addMtext("- TODAS AS PEÇAS DEVEM SER MARCADAS COM:", (self.posForXBlock + 5, self.posForYBlock, 0), generalPropertiesNotes)
     rectanglePointsTag = [
-      (self.posForXBlock + 103, self.posForYBlock + 5, 0), 
-      (self.posForXBlock + 137, self.posForYBlock + 5, 0), 
-      (self.posForXBlock + 137, self.posForYBlock - 2, 0), 
-      (self.posForXBlock + 103, self.posForYBlock - 2, 0), 
-      (self.posForXBlock + 103, self.posForYBlock + 5, 0)
+      (self.posForXBlock + 100, self.posForYBlock + 5, 0), 
+      (self.posForXBlock + 142, self.posForYBlock + 5, 0), 
+      (self.posForXBlock + 142, self.posForYBlock - 2, 0), 
+      (self.posForXBlock + 100, self.posForYBlock - 2, 0), 
+      (self.posForXBlock + 100, self.posForYBlock + 5, 0)
     ]
-    self.addTagDraw((self.posForXBlock + 120, self.posForYBlock, 0), rectanglePointsTag)
+
+    self.addTagDraw("1EE1_AA-BN-NN/...", (self.posForXBlock + 121, self.posForYBlock, 0), rectanglePointsTag)
 
     self.posForYBlock += 8
     self.addMtext("%%uNOTAS:%%u", (self.posForXBlock + 5, self.posForYBlock, 0), annotationsPropertiesNotes)
