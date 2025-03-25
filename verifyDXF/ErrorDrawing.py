@@ -41,6 +41,8 @@ class ErrorDrawing:
                     string_message = message_error
                 else:
                     string_message += message_error + "\n"
-        string_error.append(string_message)
+                    
+        if string_message:  # Adiciona a última mensagem apenas se não estiver vazia
+            string_error.append(string_message)
 
-        return string_error
+        return string_error if string_error else []
