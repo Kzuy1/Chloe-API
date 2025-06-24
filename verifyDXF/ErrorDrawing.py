@@ -22,7 +22,7 @@ class ErrorDrawing:
         self.ed20 = {'description': ':lady_beetle: [Error ED20:](<https://docs.satusequipamentos.com.br/docs/chloe/erros-de-desenho#error-ed20>) Nota com Peso Aproximado está diferente da Soma dos Blocos de Peça, correto: ','boolean_value': False }
         self.ed21 = {'description': ':lady_beetle: [Error ED21:](<https://docs.satusequipamentos.com.br/docs/chloe/erros-de-desenho#error-ed21>) Cota com linha fora do Por Camada:\n','boolean_value': False }
         self.ed22 = {'description': ':lady_beetle: [Error ED22:](<https://docs.satusequipamentos.com.br/docs/chloe/erros-de-desenho#error-ed22>) Cota com escala global incorreta:\n','boolean_value': False }
-        self.ed23 = {'description': ':lady_beetle: [Error ED23:](<https://docs.satusequipamentos.com.br/docs/chloe/erros-de-desenho#errored-23>) Fator de Escala ou Nome da cota incorreta:\n','boolean_value': False }
+        self.ed23 = {'description': ':lady_beetle: [Error ED23:](<https://docs.satusequipamentos.com.br/docs/chloe/erros-de-desenho#error-ed23>) Fator de Escala ou Nome da cota incorreta:\n','boolean_value': False }
         self.edOB = {'description': ':lady_beetle: [Error EDOB:](<https://docs.satusequipamentos.com.br/docs/chloe/erros-de-desenho#error-ed0b>) Lista de Blocos na versão antiga:\n','boolean_value': False }
         self.edSC = {'description': ':lady_beetle: [Error EDSB:](<>) Lista de Blocos na escala errada:\n','boolean_value': False }
 
