@@ -57,6 +57,17 @@ def routeVerifyDrawing():
         return make_response(verifyDrawing.message, 200, {'Content-Type': 'text/plain'})
     else:
         return jsonify({'message': 'Nenhum arquivo enviado.'}), 400
+    
+@app.route('/add-attributes', methods=['POST'])
+def routeAddAttributes():
+    xlsx_file = request.files.get('xlsx')
+    zip_file = request.files.get('zip')
+
+    print("teste se recebeu")
+    print("XLSX:", xlsx_file.filename)
+    print("ZIP:", zip_file.filename)
+
+    return 'ok'
 
 # Erro no Handling
 def uncaught_exception_handler(ex):
