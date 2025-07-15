@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, send_file, make_response
 from waitress import serve
 from excelToDXF import listToDXF
 from verifyDXF.Drawing import Drawing
+from Importa_Part_Attributes_Excel_To_DXF.importAttributesToDxf import importAttributesFromXlsx
 from datetime import datetime
 import os
 import time
@@ -57,6 +58,29 @@ def routeVerifyDrawing():
         return make_response(verifyDrawing.message, 200, {'Content-Type': 'text/plain'})
     else:
         return jsonify({'message': 'Nenhum arquivo enviado.'}), 400
+    
+@app.route('/add-attributes', methods=['POST'])
+def routeAddAttributes():
+    xlsxFile = request.files.get('xlsx')
+    zipFile = request.files.get('zip')
+
+    if xlsxFile and zipFile:
+        currentTime = datetime.now().isoformat()
+        fileCurrentTime = currentTime.replace(':', '-')
+        xlsxName = fileCurrentTime + '_' + xlsxFile.filename
+        zipName = fileCurrentTime + '_' + zipFile.filename
+
+        xlsxPath = os.path.join('attributesXlsxSaves', xlsxName)
+        zipPath = os.path.join('attributesXlsxSaves', zipName)
+        
+        xlsxFile.save(xlsxPath)
+        zipFile.save(zipPath)
+
+        outputZipPath = importAttributesFromXlsx(xlsxPath, zipPath)
+
+        return send_file(outputZipPath, as_attachment=True, download_name='resultado.zip', mimetype='application/zip')
+    else:
+        return jsonify({'message': 'Nenhum arquivo enviado.'}), 400
 
 # Erro no Handling
 def uncaught_exception_handler(ex):
@@ -72,10 +96,10 @@ asyncio.set_event_loop(loop)
 loop.set_exception_handler(unhandled_rejection_handler)
 
 # Opção para testes
-# if __name__ == '__main__':
-#     app.run(debug=True)
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=3000, debug=True)
 
 # Opção para produção
-if __name__ == '__main__':
-    delete_old_files('drawingSaves', 90)
-    serve(app, host="0.0.0.0", port=8080)
+# if __name__ == '__main__':
+#     delete_old_files('drawingSaves', 90)
+#     serve(app, host="0.0.0.0", port=8080)
