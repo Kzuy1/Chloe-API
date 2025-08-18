@@ -1,82 +1,107 @@
 import os
 import zipfile
-import shutil
 import ezdxf
 from openpyxl import load_workbook
 from ezdxf.enums import TextEntityAlignment
-from datetime import datetime
 
-def importAttributesFromXlsx(xlsxPath, zipPath):
-    # criando pastas temporárias pra trabalhar em paralelo
-    timestamp = datetime.now().isoformat().replace(":", "-")
-    temp_dir = f"temp_dxf_{timestamp}"
-    edited_dir = os.path.join(temp_dir, "edited")
-    os.makedirs(edited_dir, exist_ok=True)
+def clear_folder(folder_path):
+    if os.path.exists(folder_path):
+        for file_name in os.listdir(folder_path):
+            file_path = os.path.join(folder_path, file_name)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
 
-    # extraindo arquivos do .zip
-    with zipfile.ZipFile(zipPath, 'r') as zip_ref:
-        zip_ref.extractall(temp_dir)
+def clear_temp(directory):
+    for root, dirs, files in os.walk(directory, topdown=False):
+        for name in files:
+            os.remove(os.path.join(root, name))
+        for name in dirs:
+            os.rmdir(os.path.join(root, name))
+    os.rmdir(directory)
 
-    wb = load_workbook(xlsxPath)
-    ws = wb.active
-    header = [cell.value for cell in ws[1]]
-    idx_nome = header.index("PartName")
-    idx_esp = header.index("Thickness")
-    idx_mat = header.index("Material")
-    idx_qtd = header.index("Quantity")
+def import_attributes_from_xlsx(xlsx_file, zip_file):
+    temp_dir = os.path.join(os.path.dirname(__file__), "temp")
+    
+    uploads_folder = os.path.join(temp_dir, "uploads")
+    extracted_folder = os.path.join(temp_dir, "extracted")
+    edited_folder = os.path.join(temp_dir, "edited")
+    output_folder = os.path.join(temp_dir, "output")
 
-    for row in ws.iter_rows(min_row=2, values_only=True):
-        nome_peca = str(row[idx_nome])
-        espessura = row[idx_esp]
-        material = row[idx_mat]
-        quantidade = row[idx_qtd]
+    os.makedirs(uploads_folder)
+    os.makedirs(extracted_folder)
+    os.makedirs(edited_folder)
+    os.makedirs(output_folder)
 
-        nome_arquivo = f'{nome_peca}.dxf'
-        caminho_entrada = os.path.join(temp_dir, nome_arquivo)
-        caminho_saida = os.path.join(edited_dir, nome_arquivo)
+    xlsx_path = os.path.join(uploads_folder, xlsx_file.filename)
+    zip_path = os.path.join(uploads_folder, zip_file.filename)
+    xlsx_file.save(xlsx_path)
+    zip_file.save(zip_path)
 
-        if not os.path.exists(caminho_entrada):
-            print(f'[Aviso] Arquivo não encontrado: {nome_arquivo}')
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_ref.extractall(extracted_folder)
+
+    workbook = load_workbook(xlsx_path)
+    worksheet = workbook.active
+    header = [cell.value for cell in worksheet[1]]
+    idx_name = header.index("PartName")
+    idx_thickness = header.index("Thickness")
+    idx_material = header.index("Material")
+    idx_quantity = header.index("Quantity")
+
+    for row in worksheet.iter_rows(min_row=2, values_only=True):
+        part_name = str(row[idx_name])
+        thickness = str(row[idx_thickness]).replace('.', ',')
+        material = row[idx_material]
+        quantity = row[idx_quantity]
+
+        file_name = f'{part_name}.dxf'
+        input_path = os.path.join(extracted_folder, file_name)
+        output_path = os.path.join(edited_folder, file_name)
+
+        if not os.path.exists(input_path):
+            print(f'[Aviso] Arquivo não encontrado: {file_name}')
             continue
 
         try:
-            doc = ezdxf.readfile(caminho_entrada)
+            doc = ezdxf.readfile(input_path)
             msp = doc.modelspace()
 
             if "Administração" not in doc.layers:
                 doc.layers.new(name='Administração', dxfattribs={'color': 1})
 
-            textos = [
-                f'Part Name {nome_peca}',
-                f'Thickness {espessura}',
+            texts = [
+                f'Part Name {part_name}',
+                f'Thickness {thickness}',
                 f'Material {material}',
-                f'Quantity {quantidade}',
+                f'Quantity {quantity}',
             ]
 
             y_offset = -15
-            for texto in textos:
+            for text in texts:
                 msp.add_text(
-                    texto,
+                    text,
                     dxfattribs={
                         'layer': 'Administração',
                         'height': 10,
-                        'style': 'Arial'
                     }
                 ).set_placement((0, y_offset), align=TextEntityAlignment.LEFT)
                 y_offset -= 12
 
-            doc.saveas(caminho_saida)
+            doc.saveas(output_path)
         except Exception as e:
-            print(f'[Erro] {nome_arquivo}: {e}')
+            print(f'[Erro] {file_name}: {e}')
 
-    output_folder = os.path.join(os.path.dirname(__file__), "editedDxfFiles")
-    os.makedirs(output_folder, exist_ok=True)
+    clear_folder(uploads_folder)
+    clear_folder(extracted_folder)
 
-    outputPath = os.path.join(output_folder, f"resultado_{timestamp}.zip")
+    output_path = os.path.join(output_folder, f"resultado.zip")
 
-    base_path = os.path.splitext(outputPath)[0]
-    zip_final_path = shutil.make_archive(base_path, 'zip', edited_dir)
+    zip_final_path = os.path.join(output_folder, "resultado.zip")
+    with zipfile.ZipFile(zip_final_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for file_name in os.listdir(edited_folder):
+            file_path = os.path.join(edited_folder, file_name)
+            zipf.write(file_path, arcname=file_name)
 
-    shutil.rmtree(temp_dir)
+    clear_folder(edited_folder)
 
     return zip_final_path

@@ -1,8 +1,8 @@
-from flask import Flask, request, jsonify, send_file, make_response
+from flask import Flask, request, jsonify, send_file, make_response, after_this_request
 from waitress import serve
 from excelToDXF import listToDXF
 from verifyDXF.Drawing import Drawing
-from Importa_Part_Attributes_Excel_To_DXF.importAttributesToDxf import importAttributesFromXlsx
+from Importa_Part_Attributes_Excel_To_DXF.importAttributesToDxf import import_attributes_from_xlsx, clear_temp
 from datetime import datetime
 import os
 import time
@@ -61,24 +61,20 @@ def routeVerifyDrawing():
     
 @app.route('/add-attributes', methods=['POST'])
 def routeAddAttributes():
-    xlsxFile = request.files.get('xlsx')
-    zipFile = request.files.get('zip')
+    xlsx_file = request.files.get('xlsx')
+    zip_file = request.files.get('zip')
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    temp_dir = os.path.join(base_dir, 'Importa_Part_Attributes_Excel_To_DXF', 'temp')
 
-    if xlsxFile and zipFile:
-        currentTime = datetime.now().isoformat()
-        fileCurrentTime = currentTime.replace(':', '-')
-        xlsxName = fileCurrentTime + '_' + xlsxFile.filename
-        zipName = fileCurrentTime + '_' + zipFile.filename
+    if xlsx_file and zip_file:
+        output_zip_path = import_attributes_from_xlsx(xlsx_file, zip_file)
 
-        xlsxPath = os.path.join('attributesXlsxSaves', xlsxName)
-        zipPath = os.path.join('attributesXlsxSaves', zipName)
-        
-        xlsxFile.save(xlsxPath)
-        zipFile.save(zipPath)
+        @after_this_request
+        def cleanup(response):
+            clear_temp(temp_dir)
+            return response
 
-        outputZipPath = importAttributesFromXlsx(xlsxPath, zipPath)
-
-        return send_file(outputZipPath, as_attachment=True, download_name='resultado.zip', mimetype='application/zip')
+        return send_file(output_zip_path, as_attachment=True, download_name='resultado.zip', mimetype='application/zip')
     else:
         return jsonify({'message': 'Nenhum arquivo enviado.'}), 400
 
