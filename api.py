@@ -92,10 +92,10 @@ asyncio.set_event_loop(loop)
 loop.set_exception_handler(unhandled_rejection_handler)
 
 # Opção para testes
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=3000, debug=True)
+# if __name__ == '__main__':
+#     app.run(host='0.0.0.0', port=3000, debug=True)
 
 # Opção para produção
-# if __name__ == '__main__':
-#     delete_old_files('drawingSaves', 90)
-#     serve(app, host="0.0.0.0", port=8080)
+if __name__ == '__main__':
+    delete_old_files('drawingSaves', 90)
+    serve(app, host="0.0.0.0", port=8080)
