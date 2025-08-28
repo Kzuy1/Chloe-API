@@ -1,21 +1,19 @@
-from verifyDXF.ErrorDrawing import ErrorDrawing
-from verifyDXF.Layer import LayerList
-from verifyDXF.OldBlocks import BlockList, Entity
+from Verify_Drawing.ErrorDrawing import ErrorDrawing
+from Verify_Drawing.Layer import LayerList
+from Verify_Drawing.OldBlocks import BlockList, Entity
 from datetime import datetime
-from pymongo import MongoClient
 from json import load
 import ezdxf
 import os
 import re
 
 class Drawing:
-    def __init__(self, full_path, data_issue = None):
+    def __init__(self, file, data_issue = None):
         self.error_drawing = ErrorDrawing()
-        self.full_path = full_path
         self.data_issue = data_issue
+        self.full_path = self.save_in_temp_folder(file)
         self.file_drawing_code = self.get_drawing_code()
         self.file_drawing_code_separate = self.get_drawing_code_separate()
-        self.drawnLanguage = self.findStandardLanguage()
         self.layer_list = LayerList()
         self.layer_list.add_default_layer()
         self.doc_dxf = ezdxf.readfile(self.full_path)
@@ -41,12 +39,22 @@ class Drawing:
         self.check_part_block()
         self.check_line_scale_factor()
         self.check_leader()
-        self.check_notes_mark()
+        # self.check_notes_mark()
         self.check_dimensions_indicate()
-        self.check_version_blocks()
-        self.check_older_layers()
+        # self.check_version_blocks()
+        # self.check_older_layers()
 
         self.message = self.error_drawing.get_error_messages()
+
+    def save_in_temp_folder(self, file):
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        temp_dir = os.path.join(base_dir, "temp")
+        os.makedirs(temp_dir)
+
+        full_path = os.path.join(temp_dir, file.filename)
+        file.save(full_path)
+
+        return full_path
 
     # Função para pegar o código do Desenho
     def get_drawing_code(self):
@@ -64,24 +72,6 @@ class Drawing:
         code_separate = sum(code_separate, [])
 
         return code_separate
-    
-    # Função para pegar a Standard do Banco de Dados.
-    def findStandardLanguage(self):
-        # Conectar ao MongoDB
-        with open('config.json', 'r') as fileConfig:
-            config = load(fileConfig)
-
-        # Procura no Banco de Dados - EMBRATECENG na Collection - Projects a informações de Standard do código do Projeto
-        mongoClient = MongoClient(config['mongoUrl'])
-        mongoDatabase = mongoClient.get_database('EMBRATECENG')
-        collectionProjects = mongoDatabase['projects']
-        result = collectionProjects.find_one({"cod": self.file_drawing_code_separate[0]})
-        mongoClient.close()
-
-        # Caso não ache use o Brazil como referencia
-        standarProject = result['standard'] if result else 'brazil'
-    
-        return standarProject
     
     # Função para verificar a Data de Emissão
     def check_data_issue(self):
@@ -280,18 +270,18 @@ class Drawing:
                 return
 
     # Função para verificar as Notas de a nota de marcação está correta
-    def check_notes_mark(self):
-        for entity in self.msp_dxf:
-            if entity.dxftype() == 'TEXT' and '/...' in entity.dxf.text :
-                if self.drawnLanguage == 'brazil' :
-                    indentify_mark = f"{self.file_drawing_code_separate[1]}_{self.file_drawing_code_separate[2]}-{self.file_drawing_code_separate[3]}-{self.file_drawing_code_separate[4]}/..."
-                else :
-                    indentify_mark = f"{self.file_drawing_code_separate[2]}-{self.file_drawing_code_separate[3]}-{self.file_drawing_code_separate[4]}/..."
+    # def check_notes_mark(self):
+    #     for entity in self.msp_dxf:
+    #         if entity.dxftype() == 'TEXT' and '/...' in entity.dxf.text :
+    #             if self.drawnLanguage == 'brazil' :
+    #                 indentify_mark = f"{self.file_drawing_code_separate[1]}_{self.file_drawing_code_separate[2]}-{self.file_drawing_code_separate[3]}-{self.file_drawing_code_separate[4]}/..."
+    #             else :
+    #                 indentify_mark = f"{self.file_drawing_code_separate[2]}-{self.file_drawing_code_separate[3]}-{self.file_drawing_code_separate[4]}/..."
 
-                if entity.dxf.text != indentify_mark :
-                    self.error_drawing.ed18['boolean_value'] = True
-                    self.error_drawing.ed18['description'] += f' Correto: {indentify_mark}'
-                    return
+    #             if entity.dxf.text != indentify_mark :
+    #                 self.error_drawing.ed18['boolean_value'] = True
+    #                 self.error_drawing.ed18['description'] += f' Correto: {indentify_mark}'
+    #                 return
     
     # Função para verificar as especificações da Cotas
     def check_dimensions_indicate(self):
@@ -320,46 +310,46 @@ class Drawing:
                 self.error_drawing.ed23['description'] += f'\t\t\t{dim_name}\n'
                 
     # Função para verificar se um bloco existe no Desenho
-    def _checkBlockExists(self, blockName):
-        block = self.doc_dxf.blocks.get(blockName)
+    # def _checkBlockExists(self, blockName):
+    #     block = self.doc_dxf.blocks.get(blockName)
 
-        if block is not None:
-            return True
+    #     if block is not None:
+    #         return True
     
-    # Função adicionar nome do Bloco e Descrição no Error EDOB
-    def _concat_blockname_error(self, block_name, description):
-        self.error_drawing.edOB['boolean_value'] = True
-        self.error_drawing.edOB['description'] += f'\t\t\t{block_name} - {description}\n'
+    # # Função adicionar nome do Bloco e Descrição no Error EDOB
+    # def _concat_blockname_error(self, block_name, description):
+    #     self.error_drawing.edOB['boolean_value'] = True
+    #     self.error_drawing.edOB['description'] += f'\t\t\t{block_name} - {description}\n'
 
-    def inspect_block(self, block_name: str, expected: Entity) -> bool:
-        block = self.doc_dxf.blocks.get(block_name)
-        if block is None:
-            return False
+    # def inspect_block(self, block_name: str, expected: Entity) -> bool:
+    #     block = self.doc_dxf.blocks.get(block_name)
+    #     if block is None:
+    #         return False
 
-        for entity in block:
-            if entity.dxftype() == expected.dxftype:
-                if expected.layer is not None and entity.dxf.layer != expected.layer:
-                    continue
-                if expected.color is not None and entity.dxf.color != expected.color:
-                    continue
-                return True
+    #     for entity in block:
+    #         if entity.dxftype() == expected.dxftype:
+    #             if expected.layer is not None and entity.dxf.layer != expected.layer:
+    #                 continue
+    #             if expected.color is not None and entity.dxf.color != expected.color:
+    #                 continue
+    #             return True
 
-        return False
+    #     return False
         
     # Função para verificar as versões dos blocos
-    def check_version_blocks(self):
+    # def check_version_blocks(self):
 
-        blocks_to_check_by_entity = BlockList()
-        blocks_to_check_by_entity.add_list_old_blocks_check_by_entity()
+    #     blocks_to_check_by_entity = BlockList()
+    #     blocks_to_check_by_entity.add_list_old_blocks_check_by_entity()
 
-        # for block in blocks_to_check:
-        #     if self._checkBlockExists(block[0]):
-        #         self._concat_blockname_error(block[0], block[1])
+    #     # for block in blocks_to_check:
+    #     #     if self._checkBlockExists(block[0]):
+    #     #         self._concat_blockname_error(block[0], block[1])
 
-        for block in blocks_to_check_by_entity.blocks:
-            if not self.inspect_block(block.name, block.entity):
-                print(block.name)
-                self._concat_blockname_error(block.name, block.description)
+    #     for block in blocks_to_check_by_entity.blocks:
+    #         if not self.inspect_block(block.name, block.entity):
+    #             print(block.name)
+    #             self._concat_blockname_error(block.name, block.description)
 
 
     # Função para verificar Layer antigas
