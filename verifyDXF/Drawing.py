@@ -12,37 +12,37 @@ class Drawing:
     def __init__(self, full_path, data_issue = None):
         self.error_drawing = ErrorDrawing()
         self.full_path = full_path
-        # self.data_issue = data_issue
-        # self.file_drawing_code = self.get_drawing_code()
-        # self.file_drawing_code_separate = self.get_drawing_code_separate()
-        # self.drawnLanguage = self.findStandardLanguage()
+        self.data_issue = data_issue
+        self.file_drawing_code = self.get_drawing_code()
+        self.file_drawing_code_separate = self.get_drawing_code_separate()
+        self.drawnLanguage = self.findStandardLanguage()
         self.layer_list = LayerList()
         self.layer_list.add_default_layer()
         self.doc_dxf = ezdxf.readfile(self.full_path)
-        # self.msp_dxf = self.doc_dxf.modelspace()
-        # self.subtitle_block = self.get_block_info('REDECAM-TITOLO-TAVOLA')
-        # self.revision_blocks = self.get_block_info('REDE-DISTINTA-REVISIONE')
-        # self.revision_blocks = self.sort_block(self.revision_blocks, 'REV-N')
-        # self.part_blocks = self.get_block_info('REDECAM-DISTINTA_monolingua')
+        self.msp_dxf = self.doc_dxf.modelspace()
+        self.subtitle_block = self.get_block_info('REDECAM-TITOLO-TAVOLA')
+        self.revision_blocks = self.get_block_info('REDE-DISTINTA-REVISIONE')
+        self.revision_blocks = self.sort_block(self.revision_blocks, 'REV-N')
+        self.part_blocks = self.get_block_info('REDECAM-DISTINTA_monolingua')
 
-        # #Verifica se existe dois ou mais Bloco de Título no mesmo Desenho, 
-        # if len(self.subtitle_block) != 1:
-        #     self.error_drawing.ed09['boolean_value'] = True
-        #     self.message = self.error_drawing.get_error_messages()
-        #     return
-        # # Se não transforma self.subtitleBlock em um só objeto invés de lista
-        # self.subtitle_block = self.subtitle_block[0]
+        #Verifica se existe dois ou mais Bloco de Título no mesmo Desenho, 
+        if len(self.subtitle_block) != 1:
+            self.error_drawing.ed09['boolean_value'] = True
+            self.message = self.error_drawing.get_error_messages()
+            return
+        # Se não transforma self.subtitleBlock em um só objeto invés de lista
+        self.subtitle_block = self.subtitle_block[0]
         
-        # self.check_layer_properties()
-        # self.check_data_issue()
-        # self.check_correct_separation()
-        # self.check_subtitle_block()
-        # self.check_revision_block()
-        # self.check_part_block()
-        # self.check_line_scale_factor()
-        # self.check_leader()
-        # self.check_notes_mark()
-        # self.check_dimensions_indicate()
+        self.check_layer_properties()
+        self.check_data_issue()
+        self.check_correct_separation()
+        self.check_subtitle_block()
+        self.check_revision_block()
+        self.check_part_block()
+        self.check_line_scale_factor()
+        self.check_leader()
+        self.check_notes_mark()
+        self.check_dimensions_indicate()
         self.check_version_blocks()
         self.check_older_layers()
 
