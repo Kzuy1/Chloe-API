@@ -6,7 +6,7 @@ class ErrorDrawing:
         self.ed04 = {'description': ':lady_beetle: [Error ED04:](<https://docs.embrateceng.com.br/chloe/erros-de-desenho#error-ed04>) Bloco de Legenda está com DRAW, CHECKED ou APPROVED errado.','boolean_value': False }
         # self.ed05 = {'description': ':lady_beetle: [Error ED05:](<https://docs.embrateceng.com.br/chloe/erros-de-desenho#error-ed05>) Bloco de Revisão está com escala errado.','boolean_value': False }
         self.ed06 = {'description': ':lady_beetle: [Error ED06:](<https://docs.embrateceng.com.br/chloe/erros-de-desenho#error-ed06>) LTScale está diferente da metade da Escala do Desenho.','boolean_value': False }
-        self.ed07 = {'description': ':lady_beetle: [Error ED07:](<https://docs.embrateceng.com.br/chloe/erros-de-desenho#error-ed07>) Camada "CONTOUR EXI" está presente no Desenho.','boolean_value': False }
+        self.ed07 = {'description': ':lady_beetle: [Error ED07:](<https://docs.embrateceng.com.br/chloe/erros-de-desenho#error-ed07>) Camadas obsoletas presentes no desenho:\n','boolean_value': False }
         self.ed08 = {'description': ':lady_beetle: [Error ED08:](<https://docs.embrateceng.com.br/chloe/erros-de-desenho#error-ed08>) Linha de Chamada não está na camada QUOTE.','boolean_value': False }
         self.ed09 = {'description': ':lady_beetle: [Error ED09:](<https://docs.embrateceng.com.br/chloe/erros-de-desenho#error-ed09>) Deve ter apenas um Bloco de Legenda no mesmo desenho.','boolean_value': False }
         self.ed10 = {'description': ':lady_beetle: [Error ED10:](<https://docs.embrateceng.com.br/chloe/erros-de-desenho#error-ed10>) Bloco de Revisão 0 está com a Data diferente da Data de Emissão no Bloco de Legenda.','boolean_value': False }

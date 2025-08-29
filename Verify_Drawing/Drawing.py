@@ -1,6 +1,7 @@
 from Verify_Drawing.ErrorDrawing import ErrorDrawing
 from Verify_Drawing.Layer import LayerList
 from Verify_Drawing.OldBlocks import BlockList, Entity
+from Verify_Drawing.OldLayers import old_layers
 from datetime import datetime
 from json import load
 import ezdxf
@@ -24,12 +25,12 @@ class Drawing:
         # self.part_blocks = self.get_block_info('REDECAM-DISTINTA_monolingua')
 
         # #Verifica se existe dois ou mais Bloco de Título no mesmo Desenho, 
-        if len(self.subtitle_block) != 1:
-            self.error_drawing.ed09['boolean_value'] = True
-            self.message = self.error_drawing.get_error_messages()
-            return
+        # if len(self.subtitle_block) != 1:
+        #     self.error_drawing.ed09['boolean_value'] = True
+        #     self.message = self.error_drawing.get_error_messages()
+        #     return
         # Se não transforma self.subtitleBlock em um só objeto invés de lista
-        self.subtitle_block = self.subtitle_block[0]
+        # self.subtitle_block = self.subtitle_block[0]
         
         self.check_layer_properties()
         self.check_data_issue()
@@ -39,10 +40,9 @@ class Drawing:
         # self.check_part_block()
         # self.check_line_scale_factor()
         # self.check_leader()
-        # self.check_notes_mark()
         # self.check_dimensions_indicate()
         # self.check_version_blocks()
-        # self.check_older_layers()
+        self.check_older_layers()
 
         self.message = self.error_drawing.get_error_messages()
 
@@ -183,8 +183,8 @@ class Drawing:
                 self.error_drawing.edSC['boolean_value'] = True
                 self.error_drawing.edSC['description'] += f'\t\t\tREDE-DISTINTA-REVISIONE - Bloco de Revisão {revision_block["REV-N"]["value"]}\n'
 
-        # Verifica Bloco de Revisão atual está Preenchido
-        if len(self.revision_blocks) < int(self.file_drawing_code_separate[5]) + 1:
+        # Verifica se existe bloco de revisão correspondente a quantidade de revisões
+        if len(self.revision_blocks) < int(self.file_drawing_code_separate[3]) + 1:
             self.error_drawing.ed12['boolean_value'] = True
             return
 
@@ -196,17 +196,12 @@ class Drawing:
                 return
 
         # Verifica se a data Bloco de Revisão 0 é o mesmo no Bloco de Legenda
-        if self.revision_blocks[0]['REV-D']['value'] != self.subtitle_block['DATA']['value']:
+        if self.revision_blocks[0]['SATUS_REVISAO']['value'] != self.subtitle_block['DATA']['value']:
             self.error_drawing.ed10['boolean_value'] = True
         
         # Verifica se a data da revisão atual do desenho condiz com o bloco de revisão
         if self.revision_blocks[int(self.file_drawing_code_separate[5])]['REV-D']['value'] != self.subtitle_block['D-REV']['value']:
             self.error_drawing.ed11['boolean_value'] = True
-        
-        # Verifica se a data da revisão atual do desenho condiz com a Date de Emissão do Usuário, Padrão: Data de Hoje
-        if self.revision_blocks[int(self.file_drawing_code_separate[5])]['REV-D']['value'] != self.data_issue:
-            self.error_drawing.ed13['boolean_value'] = True
-            self.error_drawing.ed13['description'] += self.data_issue
 
     # Função para verficar Blocos de Peças
     def check_part_block(self):
@@ -264,23 +259,9 @@ class Drawing:
     # Função para verificar as linhas de chamadas
     def check_leader(self):
         for leader in self.msp_dxf.query('LEADER'):
-            if leader.dxf.layer != 'QUOTE':
+            if leader.dxf.layer != 'COTAS':
                 self.error_drawing.ed08['boolean_value'] = True
                 return
-
-    # Função para verificar as Notas de a nota de marcação está correta
-    # def check_notes_mark(self):
-    #     for entity in self.msp_dxf:
-    #         if entity.dxftype() == 'TEXT' and '/...' in entity.dxf.text :
-    #             if self.drawnLanguage == 'brazil' :
-    #                 indentify_mark = f"{self.file_drawing_code_separate[1]}_{self.file_drawing_code_separate[2]}-{self.file_drawing_code_separate[3]}-{self.file_drawing_code_separate[4]}/..."
-    #             else :
-    #                 indentify_mark = f"{self.file_drawing_code_separate[2]}-{self.file_drawing_code_separate[3]}-{self.file_drawing_code_separate[4]}/..."
-
-    #             if entity.dxf.text != indentify_mark :
-    #                 self.error_drawing.ed18['boolean_value'] = True
-    #                 self.error_drawing.ed18['description'] += f' Correto: {indentify_mark}'
-    #                 return
     
     # Função para verificar as especificações da Cotas
     def check_dimensions_indicate(self):
@@ -353,5 +334,8 @@ class Drawing:
 
     # Função para verificar Layer antigas
     def check_older_layers(self):
-        if "CONTOUR EXI" in self.doc_dxf.layers:
-            self.error_drawing.ed07['boolean_value'] = True
+        for layer in self.doc_dxf.layers:
+            layer_name = layer.dxf.name
+            if layer_name in old_layers:
+                self.error_drawing.ed07['boolean_value'] = True
+                self.error_drawing.ed07['description'] += f'\t\t\t{layer_name}\n'
