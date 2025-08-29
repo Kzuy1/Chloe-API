@@ -18,28 +18,28 @@ class Drawing:
         self.layer_list.add_default_layer()
         self.doc_dxf = ezdxf.readfile(self.full_path)
         self.msp_dxf = self.doc_dxf.modelspace()
-        # self.subtitle_block = self.get_block_info('REDECAM-TITOLO-TAVOLA')
+        self.subtitle_block = self.get_block_info('SATUS_LEGENDA')
         # self.revision_blocks = self.get_block_info('REDE-DISTINTA-REVISIONE')
         # self.revision_blocks = self.sort_block(self.revision_blocks, 'REV-N')
         # self.part_blocks = self.get_block_info('REDECAM-DISTINTA_monolingua')
 
         # #Verifica se existe dois ou mais Bloco de Título no mesmo Desenho, 
-        # if len(self.subtitle_block) != 1:
-        #     self.error_drawing.ed09['boolean_value'] = True
-        #     self.message = self.error_drawing.get_error_messages()
-        #     return
-        # # Se não transforma self.subtitleBlock em um só objeto invés de lista
-        # self.subtitle_block = self.subtitle_block[0]
+        if len(self.subtitle_block) != 1:
+            self.error_drawing.ed09['boolean_value'] = True
+            self.message = self.error_drawing.get_error_messages()
+            return
+        # Se não transforma self.subtitleBlock em um só objeto invés de lista
+        self.subtitle_block = self.subtitle_block[0]
         
         self.check_layer_properties()
-        # self.check_data_issue()
-        # self.check_correct_separation()
+        self.check_data_issue()
+        self.check_correct_separation()
         # self.check_subtitle_block()
         # self.check_revision_block()
         # self.check_part_block()
         # self.check_line_scale_factor()
         # self.check_leader()
-        # # self.check_notes_mark()
+        # self.check_notes_mark()
         # self.check_dimensions_indicate()
         # self.check_version_blocks()
         # self.check_older_layers()
@@ -49,7 +49,7 @@ class Drawing:
     def save_in_temp_folder(self, file):
         base_dir = os.path.dirname(os.path.abspath(__file__))
         temp_dir = os.path.join(base_dir, "temp")
-        os.makedirs(temp_dir)
+        os.makedirs(temp_dir, exist_ok=True)
 
         full_path = os.path.join(temp_dir, file.filename)
         file.save(full_path)
@@ -59,7 +59,6 @@ class Drawing:
     # Função para pegar o código do Desenho
     def get_drawing_code(self):
         drawing_code = os.path.splitext(os.path.basename(self.full_path))[0]
-        drawing_code = re.sub(r'\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.\d+_', '', drawing_code)
         drawing_code = drawing_code.replace('EXECUTANDO_', '')
         drawing_code = drawing_code.replace('ENTREGA_', '')
 
@@ -118,7 +117,6 @@ class Drawing:
             line_type = layer.dxf.linetype
             line_weight = layer.dxf.lineweight
             
-
             # Procura se a camada existe
             default_layer = self.layer_list.layers.get(name)
             if default_layer is None: continue
@@ -129,19 +127,18 @@ class Drawing:
                 color != default_layer.color or 
                 line_type != default_layer.line_type or 
                 line_weight != default_layer.line_weight):
-                    print(name, visible, frozen, color, line_type, line_weight, flush=True)
                     self.error_drawing.ed14['boolean_value'] = True
                     return
 
     # Função para verificar se está separado certo o codigo
     def check_correct_separation(self):
-        regex_code = r'^[A-Z0-9]+-[A-Z0-9]+_[A-Z0-9]+-[A-Z0-9]+-[A-Z0-9]+_[A-Z0-9]+$'
+        regex_code = r'^[A-Z0-9]{4}-[A-Z0-9]{7}-[0-9]{3}_[0-9]{2}$'
 
         if not re.match(regex_code, self.file_drawing_code):
             self.error_drawing.ed01['boolean_value'] = True
 
-            if len(self.file_drawing_code_separate) == 6:
-                self.error_drawing.ed01['description'] += f' Correto: {self.file_drawing_code_separate[0]}-{self.file_drawing_code_separate[1]}_{self.file_drawing_code_separate[2]}-{self.file_drawing_code_separate[3]}-{self.file_drawing_code_separate[4]}_{self.file_drawing_code_separate[5]}'
+            if len(self.file_drawing_code_separate) == 4:
+                self.error_drawing.ed01['description'] += f' Correto: {self.file_drawing_code_separate[0]}-{self.file_drawing_code_separate[1]}-{self.file_drawing_code_separate[2]}_{self.file_drawing_code_separate[3]}'
 
     # Função para verificar as informações do Bloco de Título do Desenho
     def check_subtitle_block(self):
@@ -162,7 +159,7 @@ class Drawing:
                     break
 
         # Verifica se a escala condiz com o que está escrito
-        scale_subtitle = self.subtitle_block['SCALA']['value']
+        scale_subtitle = self.subtitle_block['ESCALA']['value']
         if scale_subtitle in ('', "1:__") or abs(float(scale_subtitle.replace("1:", "")) - self.subtitle_block['x_scale']) > 0.0001:
             self.error_drawing.ed03['boolean_value'] = True
 
