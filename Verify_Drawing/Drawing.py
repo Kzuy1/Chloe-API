@@ -1,30 +1,30 @@
-from verifyDXF.ErrorDrawing import ErrorDrawing
-from verifyDXF.Layer import LayerList
+from Verify_Drawing.ErrorDrawing import ErrorDrawing
+from Verify_Drawing.Layer import LayerList
+from Verify_Drawing.OldBlocks import BlockList, Entity
+from Verify_Drawing.OldLayers import old_layers
 from datetime import datetime
-from pymongo import MongoClient
 from json import load
 import ezdxf
 import os
 import re
 
 class Drawing:
-    def __init__(self, full_path, data_issue = None):
+    def __init__(self, file, data_issue = None):
         self.error_drawing = ErrorDrawing()
-        self.full_path = full_path
         self.data_issue = data_issue
+        self.full_path = self.save_in_temp_folder(file)
         self.file_drawing_code = self.get_drawing_code()
         self.file_drawing_code_separate = self.get_drawing_code_separate()
-        self.drawnLanguage = self.findStandardLanguage()
         self.layer_list = LayerList()
         self.layer_list.add_default_layer()
         self.doc_dxf = ezdxf.readfile(self.full_path)
         self.msp_dxf = self.doc_dxf.modelspace()
-        self.subtitle_block = self.get_block_info('REDECAM-TITOLO-TAVOLA')
-        self.revision_blocks = self.get_block_info('REDE-DISTINTA-REVISIONE')
+        self.subtitle_block = self.get_block_info('SATUS_LEGENDA')
+        self.revision_blocks = self.get_block_info('SATUS_REVISAO')
         self.revision_blocks = self.sort_block(self.revision_blocks, 'REV-N')
-        self.part_blocks = self.get_block_info('REDECAM-DISTINTA_monolingua')
+        # self.part_blocks = self.get_block_info('REDECAM-DISTINTA_monolingua')
 
-        #Verifica se existe dois ou mais Bloco de Título no mesmo Desenho, 
+        # #Verifica se existe dois ou mais Bloco de Título no mesmo Desenho, 
         if len(self.subtitle_block) != 1:
             self.error_drawing.ed09['boolean_value'] = True
             self.message = self.error_drawing.get_error_messages()
@@ -37,20 +37,28 @@ class Drawing:
         self.check_correct_separation()
         self.check_subtitle_block()
         self.check_revision_block()
-        self.check_part_block()
+        # # self.check_part_block()
         self.check_line_scale_factor()
         self.check_leader()
-        self.check_notes_mark()
         self.check_dimensions_indicate()
-        self.check_block_in_R16()
-        self.check_layer_in_R16()
+        # # self.check_version_blocks()
+        self.check_older_layers()
 
         self.message = self.error_drawing.get_error_messages()
+
+    def save_in_temp_folder(self, file):
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        temp_dir = os.path.join(base_dir, "temp")
+        os.makedirs(temp_dir, exist_ok=True)
+
+        full_path = os.path.join(temp_dir, file.filename)
+        file.save(full_path)
+
+        return full_path
 
     # Função para pegar o código do Desenho
     def get_drawing_code(self):
         drawing_code = os.path.splitext(os.path.basename(self.full_path))[0]
-        drawing_code = re.sub(r'\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.\d+_', '', drawing_code)
         drawing_code = drawing_code.replace('EXECUTANDO_', '')
         drawing_code = drawing_code.replace('ENTREGA_', '')
 
@@ -63,24 +71,6 @@ class Drawing:
         code_separate = sum(code_separate, [])
 
         return code_separate
-    
-    # Função para pegar a Standard do Banco de Dados.
-    def findStandardLanguage(self):
-        # Conectar ao MongoDB
-        with open('config.json', 'r') as fileConfig:
-            config = load(fileConfig)
-
-        # Procura no Banco de Dados - EMBRATECENG na Collection - Projects a informações de Standard do código do Projeto
-        mongoClient = MongoClient(config['mongoUrl'])
-        mongoDatabase = mongoClient.get_database('EMBRATECENG')
-        collectionProjects = mongoDatabase['projects']
-        result = collectionProjects.find_one({"cod": self.file_drawing_code_separate[0]})
-        mongoClient.close()
-
-        # Caso não ache use o Brazil como referencia
-        standarProject = result['standard'] if result else 'brazil'
-    
-        return standarProject
     
     # Função para verificar a Data de Emissão
     def check_data_issue(self):
@@ -126,7 +116,7 @@ class Drawing:
             color = layer.dxf.color
             line_type = layer.dxf.linetype
             line_weight = layer.dxf.lineweight
-
+            
             # Procura se a camada existe
             default_layer = self.layer_list.layers.get(name)
             if default_layer is None: continue
@@ -142,34 +132,22 @@ class Drawing:
 
     # Função para verificar se está separado certo o codigo
     def check_correct_separation(self):
-        regex_code = r'^[A-Z0-9]+-[A-Z0-9]+_[A-Z0-9]+-[A-Z0-9]+-[A-Z0-9]+_[A-Z0-9]+$'
+        regex_code = r'^[A-Z0-9]{4}-[A-Z0-9]{7}-[0-9]{3}_[0-9]{2}$'
 
         if not re.match(regex_code, self.file_drawing_code):
             self.error_drawing.ed01['boolean_value'] = True
 
-            if len(self.file_drawing_code_separate) == 6:
-                self.error_drawing.ed01['description'] += f' Correto: {self.file_drawing_code_separate[0]}-{self.file_drawing_code_separate[1]}_{self.file_drawing_code_separate[2]}-{self.file_drawing_code_separate[3]}-{self.file_drawing_code_separate[4]}_{self.file_drawing_code_separate[5]}'
+            if len(self.file_drawing_code_separate) == 4:
+                self.error_drawing.ed01['description'] += f' Correto: {self.file_drawing_code_separate[0]}-{self.file_drawing_code_separate[1]}-{self.file_drawing_code_separate[2]}_{self.file_drawing_code_separate[3]}'
 
     # Função para verificar as informações do Bloco de Título do Desenho
     def check_subtitle_block(self):
-        #Verifica se está na versão R18
-        if 'EXCL' in self.subtitle_block:
-            self._concat_blockname_error('REDECAM-TITOLO-TAVOLA', 'Bloco de Legenda')
-        
-        #Verifica se está na versão R16
-        if 'REV-CARTIGLIO_1_0' in self.subtitle_block:
-            if (2 * self.subtitle_block['x_scale'] - self.subtitle_block['REV-CARTIGLIO_1_0']['height']) > 0.01:
-                self._concat_blockname_error('REDECAM-TITOLO-TAVOLA', 'Bloco de Legenda')
-
         # Verifica cada chave e seu valor correspondente somente se o Error 01 não tiver ativo
         if not self.error_drawing.ed01['boolean_value']:
             # Chaves do Código do Desenho
             key_codes = {
-                'COMMESSA-N.': self.file_drawing_code_separate[0] + '-' + self.file_drawing_code_separate[1],
-                'APP': self.file_drawing_code_separate[2],
-                'GRUP': self.file_drawing_code_separate[3],
-                'DIS': self.file_drawing_code_separate[4],
-                'REV': self.file_drawing_code_separate[5]
+                'CODIGO-1': self.file_drawing_code_separate[0]+'-'+self.file_drawing_code_separate[1]+'-'+self.file_drawing_code_separate[2],
+                'REVISAO': self.file_drawing_code_separate[3]
             }
 
             for key, key_value in key_codes.items():
@@ -178,42 +156,37 @@ class Drawing:
                     break
 
         # Verifica se a escala condiz com o que está escrito
-        scale_subtitle = self.subtitle_block['SCALA']['value']
-        if scale_subtitle in ('', "1:__") or abs(float(scale_subtitle.replace("1:", "")) - self.subtitle_block['x_scale']) > 0.0001:
+        scale_subtitle = self.subtitle_block['ESCALA']['value']
+        if scale_subtitle in ('', "1:XX") or abs(float(scale_subtitle.replace("1:", "")) - self.subtitle_block['x_scale']) > 0.0001:
             self.error_drawing.ed03['boolean_value'] = True
 
-        # Verifica se o desenho foi feito por EMB
-        if 'SIGLA' in self.subtitle_block and self.subtitle_block['SIGLA']['value'] != 'EMB' :
+        # Verifica se o desenho foi feito
+        if 'DES.' in self.subtitle_block and self.subtitle_block['DES.']['value'] == '' :
             self.error_drawing.ed04['boolean_value'] = True
         
-        # Verifica se o desenho foi aprovado por VOL
-        if 'S-CONT' in self.subtitle_block and self.subtitle_block['S-CONT']['value'] != 'VOL' :
+        # Verifica se o desenho foi verificado
+        if 'VERIF.' in self.subtitle_block and self.subtitle_block['VERIF.']['value'] == '' :
             self.error_drawing.ed04['boolean_value'] = True
 
-        # Verifica se a aprovação está vazia, por que cliente deve aprovar
-        if 'APPROVATO' in self.subtitle_block and self.subtitle_block['APPROVATO']['value'] != '' :
+        # Verifica se a aprovação não está vazia
+        if 'APROV.' in self.subtitle_block and self.subtitle_block['APROV.']['value'] == '' :
             self.error_drawing.ed04['boolean_value'] = True
 
     # Função para verificar Escala dos Blocos de Revisão
     def check_revision_block(self):
-        # Verifica se Bloco de Revisão não está na versão antiga
-        if self._checkBlockExists('REDECAM_REVISION'):
-            self._concat_blockname_error('REDECAM_REVISION', 'Bloco de Revisão')
-            return
-        
         for revision_block in self.revision_blocks:
             # Verifica Escala do Bloco de Revisão
             if abs(self.subtitle_block['x_scale'] - revision_block['x_scale']) > 0.0001 :
                 self.error_drawing.edSC['boolean_value'] = True
-                self.error_drawing.edSC['description'] += f'\t\t\tREDE-DISTINTA-REVISIONE - Bloco de Revisão {revision_block["REV-N"]["value"]}\n'
+                self.error_drawing.edSC['description'] += f'\t\t\tSATUS_REVISAO - Bloco de Revisão {revision_block["REV-N"]["value"]}\n'
 
-        # Verifica Bloco de Revisão atual está Preenchido
-        if len(self.revision_blocks) < int(self.file_drawing_code_separate[5]) + 1:
+        # Verifica se existe bloco de revisão correspondente a quantidade de revisões
+        if len(self.revision_blocks) < int(self.file_drawing_code_separate[3]) + 1:
             self.error_drawing.ed12['boolean_value'] = True
             return
 
         # Verifica Bloco de Revisão até última Revisão se está Preenchido
-        current_review_block = self.revision_blocks[int(self.file_drawing_code_separate[5])]
+        current_review_block = self.revision_blocks[int(self.file_drawing_code_separate[3])]
         for attribs in current_review_block.values():
             if isinstance(attribs, dict) and attribs['value'] == '':
                 self.error_drawing.ed12['boolean_value'] = True
@@ -223,12 +196,8 @@ class Drawing:
         if self.revision_blocks[0]['REV-D']['value'] != self.subtitle_block['DATA']['value']:
             self.error_drawing.ed10['boolean_value'] = True
         
-        # Verifica se a data da revisão atual do desenho condiz com o bloco de revisão
-        if self.revision_blocks[int(self.file_drawing_code_separate[5])]['REV-D']['value'] != self.subtitle_block['D-REV']['value']:
-            self.error_drawing.ed11['boolean_value'] = True
-        
         # Verifica se a data da revisão atual do desenho condiz com a Date de Emissão do Usuário, Padrão: Data de Hoje
-        if self.revision_blocks[int(self.file_drawing_code_separate[5])]['REV-D']['value'] != self.data_issue:
+        if self.revision_blocks[int(self.file_drawing_code_separate[3])]['REV-D']['value'] != self.data_issue:
             self.error_drawing.ed13['boolean_value'] = True
             self.error_drawing.ed13['description'] += self.data_issue
 
@@ -288,23 +257,9 @@ class Drawing:
     # Função para verificar as linhas de chamadas
     def check_leader(self):
         for leader in self.msp_dxf.query('LEADER'):
-            if leader.dxf.layer != 'QUOTE':
+            if leader.dxf.layer != 'COTAS':
                 self.error_drawing.ed08['boolean_value'] = True
                 return
-
-    # Função para verificar as Notas de a nota de marcação está correta
-    def check_notes_mark(self):
-        for entity in self.msp_dxf:
-            if entity.dxftype() == 'TEXT' and '/...' in entity.dxf.text :
-                if self.drawnLanguage == 'brazil' :
-                    indentify_mark = f"{self.file_drawing_code_separate[1]}_{self.file_drawing_code_separate[2]}-{self.file_drawing_code_separate[3]}-{self.file_drawing_code_separate[4]}/..."
-                else :
-                    indentify_mark = f"{self.file_drawing_code_separate[2]}-{self.file_drawing_code_separate[3]}-{self.file_drawing_code_separate[4]}/..."
-
-                if entity.dxf.text != indentify_mark :
-                    self.error_drawing.ed18['boolean_value'] = True
-                    self.error_drawing.ed18['description'] += f' Correto: {indentify_mark}'
-                    return
     
     # Função para verificar as especificações da Cotas
     def check_dimensions_indicate(self):
@@ -333,66 +288,52 @@ class Drawing:
                 self.error_drawing.ed23['description'] += f'\t\t\t{dim_name}\n'
                 
     # Função para verificar se um bloco existe no Desenho
-    def _checkBlockExists(self, blockName):
-        block = self.doc_dxf.blocks.get(blockName)
+    # def _checkBlockExists(self, blockName):
+    #     block = self.doc_dxf.blocks.get(blockName)
 
-        if block is not None:
-            return True
+    #     if block is not None:
+    #         return True
     
-    # Função adicionar nome do Bloco e Descrição no Error EDOB
-    def _concat_blockname_error(self, block_name, description):
-        self.error_drawing.edOB['boolean_value'] = True
-        self.error_drawing.edOB['description'] += f'\t\t\t{block_name} - {description}\n'
+    # # Função adicionar nome do Bloco e Descrição no Error EDOB
+    # def _concat_blockname_error(self, block_name, description):
+    #     self.error_drawing.edOB['boolean_value'] = True
+    #     self.error_drawing.edOB['description'] += f'\t\t\t{block_name} - {description}\n'
 
-    # Função para verificar os blocos que estão no R16
-    def check_block_in_R16(self):
-        blocks_to_check = [
-            ('TABELLA COPPIE SERRAGGIO - METRICO', 'Tabela de Torque do Parafuso'),
-            ('PARTICOLARE-GUARNIZIONE', 'Bloco de Junta'),
-            ('MARCA', 'Bloco Indicação Peça'),
-            ('LIVELLO-ALZATO', 'Bloco de Nível'),
-            ('LIVELLO-PIANTA', 'Bloco de Nível para Superficie'),
-            ('TIPICO-SALDATURA_FLANGE-L', 'Bloco de Solda para Flange Livre'),
-            ('TIPICO-SALDATURA_FLANGE-PIANE', 'Bloco de Solda com Flange Fixo'),
-            ('EMB_LISTA_DE_MATERIAL', 'Bloco de Material'),
-            ('EMB_LISTA_DE_MATERIAL_INFO_ING', 'Bloco de Material das Informações'),
-            ('EMB_LISTA_DE_MATERIAL_DESCRITIVO_ING', 'Bloco de Material das Descrições'),
-            ('EMB_LISTA_DE_MATERIAL_INFO', 'Bloco de Material das Informações'),
-            ('EMB_LISTA_DE_MATERIAL_DESCRITIVO', 'Bloco de Material das Descrições')
-        ]
+    # def inspect_block(self, block_name: str, expected: Entity) -> bool:
+    #     block = self.doc_dxf.blocks.get(block_name)
+    #     if block is None:
+    #         return False
 
-        for block in blocks_to_check:
-            if self._checkBlockExists(block[0]):
-                self._concat_blockname_error(block[0], block[1])
+    #     for entity in block:
+    #         if entity.dxftype() == expected.dxftype:
+    #             if expected.layer is not None and entity.dxf.layer != expected.layer:
+    #                 continue
+    #             if expected.color is not None and entity.dxf.color != expected.color:
+    #                 continue
+    #             return True
 
-        # Verificação de Blocos de Solda
-        if self._checkBlockExists('TIPICO-SALDATURA_ENG-POR') or \
-            self._checkBlockExists('TIPICO-SALDATURA_ITA-ENG'): 
-                self.error_drawing.edOB['boolean_value'] = True
-                self.error_drawing.edOB['description'] += '\t\t\tTIPICO-SALDATURA - Bloco de Solda\n'
+    #     return False
+        
+    # Função para verificar as versões dos blocos
+    # def check_version_blocks(self):
 
-        # Verificação de Blocos do Formato
-        if self._checkBlockExists('REDE-A0') or \
-            self._checkBlockExists('REDE-A1') or \
-            self._checkBlockExists('REDE-A2') or \
-            self._checkBlockExists('REDE-A3'):
-                self.error_drawing.edOB['boolean_value'] = True
-                self.error_drawing.edOB['description'] += '\t\t\tREDE - Bloco de folha\n'
-            
-        # Verificação do Bloco de Junta
-        if self._checkBlockExists('REDECAM-GUARNIZIONI_monolingua'):
-            block = self.doc_dxf.blocks.get('REDECAM-GUARNIZIONI_monolingua')
+    #     blocks_to_check_by_entity = BlockList()
+    #     blocks_to_check_by_entity.add_list_old_blocks_check_by_entity()
 
-            # Acessa as entidades dentro do bloco e procure um Texto escrito m (Metro)
-            for entity in block:
-                if entity.dxftype() == 'TEXT' and entity.dxf.text == 'm':
-                    return
-            
-            # Caso não tenha informa que o Bloco está na Versão antiga
-            self.error_drawing.edOB['boolean_value'] = True
-            self.error_drawing.edOB['description'] += '\t\t\tREDECAM-GUARNIZIONI - Bloco de Junta\n'
+    #     # for block in blocks_to_check:
+    #     #     if self._checkBlockExists(block[0]):
+    #     #         self._concat_blockname_error(block[0], block[1])
 
-    # Função para verificar se a Layer Existe
-    def check_layer_in_R16(self):
-        if "CONTOUR EXI" in self.doc_dxf.layers:
-            self.error_drawing.ed07['boolean_value'] = True
+    #     for block in blocks_to_check_by_entity.blocks:
+    #         if not self.inspect_block(block.name, block.entity):
+    #             print(block.name)
+    #             self._concat_blockname_error(block.name, block.description)
+
+
+    # Função para verificar Layer antigas
+    def check_older_layers(self):
+        for layer in self.doc_dxf.layers:
+            layer_name = layer.dxf.name
+            if layer_name in old_layers:
+                self.error_drawing.ed07['boolean_value'] = True
+                self.error_drawing.ed07['description'] += f'\t\t\t{layer_name}\n'
