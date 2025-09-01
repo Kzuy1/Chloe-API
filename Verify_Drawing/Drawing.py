@@ -20,28 +20,28 @@ class Drawing:
         self.doc_dxf = ezdxf.readfile(self.full_path)
         self.msp_dxf = self.doc_dxf.modelspace()
         self.subtitle_block = self.get_block_info('SATUS_LEGENDA')
-        # self.revision_blocks = self.get_block_info('REDE-DISTINTA-REVISIONE')
-        # self.revision_blocks = self.sort_block(self.revision_blocks, 'REV-N')
+        self.revision_blocks = self.get_block_info('SATUS_REVISAO')
+        self.revision_blocks = self.sort_block(self.revision_blocks, 'REV-N')
         # self.part_blocks = self.get_block_info('REDECAM-DISTINTA_monolingua')
 
         # #Verifica se existe dois ou mais Bloco de Título no mesmo Desenho, 
-        # if len(self.subtitle_block) != 1:
-        #     self.error_drawing.ed09['boolean_value'] = True
-        #     self.message = self.error_drawing.get_error_messages()
-        #     return
+        if len(self.subtitle_block) != 1:
+            self.error_drawing.ed09['boolean_value'] = True
+            self.message = self.error_drawing.get_error_messages()
+            return
         # Se não transforma self.subtitleBlock em um só objeto invés de lista
-        # self.subtitle_block = self.subtitle_block[0]
+        self.subtitle_block = self.subtitle_block[0]
         
         self.check_layer_properties()
         self.check_data_issue()
         self.check_correct_separation()
-        # self.check_subtitle_block()
-        # self.check_revision_block()
-        # self.check_part_block()
-        # self.check_line_scale_factor()
-        # self.check_leader()
-        # self.check_dimensions_indicate()
-        # self.check_version_blocks()
+        self.check_subtitle_block()
+        self.check_revision_block()
+        # # self.check_part_block()
+        self.check_line_scale_factor()
+        self.check_leader()
+        self.check_dimensions_indicate()
+        # # self.check_version_blocks()
         self.check_older_layers()
 
         self.message = self.error_drawing.get_error_messages()
@@ -146,11 +146,8 @@ class Drawing:
         if not self.error_drawing.ed01['boolean_value']:
             # Chaves do Código do Desenho
             key_codes = {
-                'COMMESSA-N.': self.file_drawing_code_separate[0] + '-' + self.file_drawing_code_separate[1],
-                'APP': self.file_drawing_code_separate[2],
-                'GRUP': self.file_drawing_code_separate[3],
-                'DIS': self.file_drawing_code_separate[4],
-                'REV': self.file_drawing_code_separate[5]
+                'CODIGO-1': self.file_drawing_code_separate[0]+'-'+self.file_drawing_code_separate[1]+'-'+self.file_drawing_code_separate[2],
+                'REVISAO': self.file_drawing_code_separate[3]
             }
 
             for key, key_value in key_codes.items():
@@ -160,19 +157,19 @@ class Drawing:
 
         # Verifica se a escala condiz com o que está escrito
         scale_subtitle = self.subtitle_block['ESCALA']['value']
-        if scale_subtitle in ('', "1:__") or abs(float(scale_subtitle.replace("1:", "")) - self.subtitle_block['x_scale']) > 0.0001:
+        if scale_subtitle in ('', "1:XX") or abs(float(scale_subtitle.replace("1:", "")) - self.subtitle_block['x_scale']) > 0.0001:
             self.error_drawing.ed03['boolean_value'] = True
 
-        # Verifica se o desenho foi feito por EMB
-        if 'SIGLA' in self.subtitle_block and self.subtitle_block['SIGLA']['value'] != 'EMB' :
+        # Verifica se o desenho foi feito
+        if 'DES.' in self.subtitle_block and self.subtitle_block['DES.']['value'] == '' :
             self.error_drawing.ed04['boolean_value'] = True
         
-        # Verifica se o desenho foi aprovado por VOL
-        if 'S-CONT' in self.subtitle_block and self.subtitle_block['S-CONT']['value'] != 'VOL' :
+        # Verifica se o desenho foi verificado
+        if 'VERIF.' in self.subtitle_block and self.subtitle_block['VERIF.']['value'] == '' :
             self.error_drawing.ed04['boolean_value'] = True
 
-        # Verifica se a aprovação está vazia, por que cliente deve aprovar
-        if 'APPROVATO' in self.subtitle_block and self.subtitle_block['APPROVATO']['value'] != '' :
+        # Verifica se a aprovação não está vazia
+        if 'APROV.' in self.subtitle_block and self.subtitle_block['APROV.']['value'] == '' :
             self.error_drawing.ed04['boolean_value'] = True
 
     # Função para verificar Escala dos Blocos de Revisão
@@ -181,7 +178,7 @@ class Drawing:
             # Verifica Escala do Bloco de Revisão
             if abs(self.subtitle_block['x_scale'] - revision_block['x_scale']) > 0.0001 :
                 self.error_drawing.edSC['boolean_value'] = True
-                self.error_drawing.edSC['description'] += f'\t\t\tREDE-DISTINTA-REVISIONE - Bloco de Revisão {revision_block["REV-N"]["value"]}\n'
+                self.error_drawing.edSC['description'] += f'\t\t\tSATUS_REVISAO - Bloco de Revisão {revision_block["REV-N"]["value"]}\n'
 
         # Verifica se existe bloco de revisão correspondente a quantidade de revisões
         if len(self.revision_blocks) < int(self.file_drawing_code_separate[3]) + 1:
@@ -189,19 +186,20 @@ class Drawing:
             return
 
         # Verifica Bloco de Revisão até última Revisão se está Preenchido
-        current_review_block = self.revision_blocks[int(self.file_drawing_code_separate[5])]
+        current_review_block = self.revision_blocks[int(self.file_drawing_code_separate[3])]
         for attribs in current_review_block.values():
             if isinstance(attribs, dict) and attribs['value'] == '':
                 self.error_drawing.ed12['boolean_value'] = True
                 return
 
         # Verifica se a data Bloco de Revisão 0 é o mesmo no Bloco de Legenda
-        if self.revision_blocks[0]['SATUS_REVISAO']['value'] != self.subtitle_block['DATA']['value']:
+        if self.revision_blocks[0]['REV-D']['value'] != self.subtitle_block['DATA']['value']:
             self.error_drawing.ed10['boolean_value'] = True
         
-        # Verifica se a data da revisão atual do desenho condiz com o bloco de revisão
-        if self.revision_blocks[int(self.file_drawing_code_separate[5])]['REV-D']['value'] != self.subtitle_block['D-REV']['value']:
-            self.error_drawing.ed11['boolean_value'] = True
+        # Verifica se a data da revisão atual do desenho condiz com a Date de Emissão do Usuário, Padrão: Data de Hoje
+        if self.revision_blocks[int(self.file_drawing_code_separate[3])]['REV-D']['value'] != self.data_issue:
+            self.error_drawing.ed13['boolean_value'] = True
+            self.error_drawing.ed13['description'] += self.data_issue
 
     # Função para verficar Blocos de Peças
     def check_part_block(self):
