@@ -64,6 +64,25 @@ def routeAddAttributes():
         return send_file(output_zip_path, as_attachment=True, download_name='resultado.zip', mimetype='application/zip')
     else:
         return jsonify({'message': 'Nenhum arquivo enviado.'}), 400
+    
+@app.route('/add-attributes', methods=['POST'])
+def routeAddAttributes():
+    xlsx_file = request.files.get('xlsx')
+    zip_file = request.files.get('zip')
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    temp_dir = os.path.join(base_dir, 'Importa_Part_Attributes_Excel_To_DXF', 'temp')
+
+    if xlsx_file and zip_file:
+        output_zip_path = import_attributes_from_xlsx(xlsx_file, zip_file)
+
+        @after_this_request
+        def cleanup(response):
+            clear_temp(temp_dir)
+            return response
+
+        return send_file(output_zip_path, as_attachment=True, download_name='resultado.zip', mimetype='application/zip')
+    else:
+        return jsonify({'message': 'Nenhum arquivo enviado.'}), 400
 
 # Erro no Handling
 def uncaught_exception_handler(ex):
