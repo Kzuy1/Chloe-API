@@ -1,9 +1,0 @@
-services:
-  api:
-    container_name: docker-maneiro
-    build: .
-    ports:
-      - "3000:3000"
-    volumes:
-      - .:/app
-    command: python api.py
