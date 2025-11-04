@@ -12,7 +12,7 @@ class Drawing:
     def __init__(self, file, data_issue = None):
         self.error_drawing = ErrorDrawing()
         self.data_issue = data_issue
-        self.full_path = file
+        self.full_path = self.save_in_temp_folder(file)
         self.file_drawing_code = self.get_drawing_code()
         self.file_drawing_code_separate = self.get_drawing_code_separate()
         self.layer_list = LayerList()
