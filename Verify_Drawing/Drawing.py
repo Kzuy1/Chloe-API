@@ -114,9 +114,11 @@ class Drawing:
             frozen = layer.is_frozen()
             locked = layer.is_locked()
             color = layer.dxf.color
+            true_color = layer.dxf.true_color
             line_type = layer.dxf.linetype
             line_weight = layer.dxf.lineweight
             
+
             # Procura se a camada existe
             default_layer = self.layer_list.layers.get(name)
             if default_layer is None: continue
@@ -126,7 +128,8 @@ class Drawing:
                 locked != default_layer.locked or 
                 color != default_layer.color or 
                 line_type != default_layer.line_type or 
-                line_weight != default_layer.line_weight):
+                line_weight != default_layer.line_weight or
+                true_color is not None):
                     self.error_drawing.ed14['boolean_value'] = True
                     return
 
