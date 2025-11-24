@@ -1,9 +1,8 @@
 from flask import Flask, request, jsonify, send_file, make_response, after_this_request
 from waitress import serve
-from excelToDXF import listToDXF
+from ExcelToDxf.ListToDxf import ListToDxf
 from Verify_Drawing.Drawing import Drawing
 from Importa_Part_Attributes_Excel_To_DXF.importAttributesToDxf import import_attributes_from_xlsx, clear_temp
-from datetime import datetime
 import os
 import asyncio
 import sys
@@ -22,8 +21,8 @@ def upload_file():
         excelFile = os.path.join('uploads', filename)
         file.save(excelFile)
 
-        convertExcelDXF = listToDXF(excelFile)
-        return send_file(convertExcelDXF.targetDXFFile, as_attachment=True, download_name= convertExcelDXF.fileName + ".dxf", mimetype='application/dxf')
+        convertExcelDXF = ListToDxf(excelFile)
+        return send_file(convertExcelDXF.target_dxf_path, as_attachment=True, download_name= convertExcelDXF.file_name + ".dxf", mimetype='application/dxf')
     else:
         return jsonify({'message': 'Nenhum arquivo enviado.'}), 400
 
@@ -78,7 +77,7 @@ loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 loop.set_exception_handler(unhandled_rejection_handler)
 
-# Opção para testes
+# # Opção para testes
 # if __name__ == '__main__':
 #     app.run(host='0.0.0.0', port=3000, debug=True)
 
