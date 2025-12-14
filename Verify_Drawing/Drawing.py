@@ -22,7 +22,7 @@ class Drawing:
         self.subtitle_block = self.get_block_info('SATUS_LEGENDA')
         self.revision_blocks = self.get_block_info('SATUS_REVISAO')
         self.revision_blocks = self.sort_block(self.revision_blocks, 'REV-N')
-        # self.part_blocks = self.get_block_info('REDECAM-DISTINTA_monolingua')
+        self.part_blocks = self.get_block_info('SATUS_LISTA-PECAS')
 
         # #Verifica se existe dois ou mais Bloco de Título no mesmo Desenho, 
         if len(self.subtitle_block) != 1:
@@ -37,7 +37,7 @@ class Drawing:
         self.check_correct_separation()
         self.check_subtitle_block()
         self.check_revision_block()
-        # # self.check_part_block()
+        self.check_part_block()
         self.check_line_scale_factor()
         self.check_leader()
         self.check_dimensions_indicate()
@@ -210,34 +210,26 @@ class Drawing:
         sum_weight_withou_rock = 0
 
         for part_block in self.part_blocks:
-            # Verifica se o Peso está com vírgula
-            if ',' in part_block["PESO-CAD"]['value'] or ',' in part_block["TOTALE"]['value']:
+            # Verifica se o Peso está com Ponto
+            if '.' in part_block["PESO_UNIT."]['value'] or '.' in part_block["PESO_TOTAL"]['value']:
                 self.error_drawing.ed15['boolean_value'] = True
 
-            # Verifica se a descrição está com vírgula
-            if ',' in part_block['DESCRIZIONE-IN-R1']['value']:
-                self.error_drawing.ed17['boolean_value'] = True
-
             # Verifica se a multiplicação do peso bate
-            part_qty = float(part_block["QUANTITA'"]['value'])
-            part_weight = float(part_block["PESO-CAD"]['value'].replace(',', '.'))
-            part_total_weight = float(part_block["TOTALE"]['value'].replace(',', '.'))
+            part_qty = float(part_block["QTDE."]['value'])
+            part_weight = float(part_block["PESO_UNIT."]['value'].replace(',', '.'))
+            part_total_weight = float(part_block["PESO_TOTAL"]['value'].replace(',', '.'))
             
             if abs(part_qty * part_weight - part_total_weight) > 0.0001:
                 self.error_drawing.ed16['boolean_value'] = True
 
             # Realiza soma do peso total e soma do peso somente das peças de aço.
             sum_weight += part_total_weight
-            if not any(keyword in part_block['DESCRIZIONE-IN-R1']['value'] for keyword in ['ROCHA', 'ROCK']):
+            if not any(keyword in part_block['DESCRICAO']['value'] for keyword in ['ROCHA', 'ROCK']):
                 sum_weight_withou_rock += part_total_weight
 
-            # Verifica se o Atributo MARCA do Blocos de Peças está com Fator de Largura de 0.7
-            if abs(part_block['MARCA']['width_factor'] - 0.7) > 0.0001:
-                self.error_drawing.ed19['boolean_value'] = True
-        
         # Verifica se a nota de Peso Total Aprox. está próxima da soma dos pesos dos blocos brancos
         for entity in self.msp_dxf:
-            if entity.dxftype() == 'TEXT' and entity.dxf.layer == 'CONTORNI' and 'kg' in entity.dxf.text:
+            if entity.dxftype() == 'TEXT' and entity.dxf.layer == 'TEXTO' and 'kg' in entity.dxf.text and entity.dxf.color == 2:
                 compare_weight = sum_weight
 
                 if any(keyword in entity.dxf.text for keyword in ['STEELWORK', 'AÇO']):
