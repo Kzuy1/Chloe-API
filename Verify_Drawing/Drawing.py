@@ -163,18 +163,6 @@ class Drawing:
         if scale_subtitle in ('', "1:XX") or abs(float(scale_subtitle.replace("1:", "")) - self.subtitle_block['x_scale']) > 0.0001:
             self.error_drawing.ed03['boolean_value'] = True
 
-        # Verifica se o desenho foi feito
-        if 'DES.' in self.subtitle_block and self.subtitle_block['DES.']['value'] == '' :
-            self.error_drawing.ed04['boolean_value'] = True
-        
-        # Verifica se o desenho foi verificado
-        if 'VERIF.' in self.subtitle_block and self.subtitle_block['VERIF.']['value'] == '' :
-            self.error_drawing.ed04['boolean_value'] = True
-
-        # Verifica se a aprovação não está vazia
-        if 'APROV.' in self.subtitle_block and self.subtitle_block['APROV.']['value'] == '' :
-            self.error_drawing.ed04['boolean_value'] = True
-
     # Função para verificar Escala dos Blocos de Revisão
     def check_revision_block(self):
         for revision_block in self.revision_blocks:
@@ -203,6 +191,23 @@ class Drawing:
         if self.revision_blocks[int(self.file_drawing_code_separate[3])]['REV-D']['value'] != self.data_issue:
             self.error_drawing.ed13['boolean_value'] = True
             self.error_drawing.ed13['description'] += self.data_issue
+
+        # Verificar a revisão de pares a mesma pessoa está atribuída a mais de um papel na Revisão de Pares
+        revision_responsibles = []
+        revision_responsibles.append(self.revision_blocks[int(self.file_drawing_code_separate[3])]['DES.']['value'].strip().upper())
+        revision_responsibles.append(self.revision_blocks[int(self.file_drawing_code_separate[3])]['VERIF.']['value'].strip().upper())
+        revision_responsibles.append(self.revision_blocks[int(self.file_drawing_code_separate[3])]['APROV.']['value'].strip().upper())
+        
+        if len(revision_responsibles) != len(set(revision_responsibles)):
+            self.error_drawing.ed04['boolean_value'] = True
+
+        # Verificar se revisão de pares do Bloco 0 está igual ao Bloco de Título
+        if any([
+            self.revision_blocks[0]['DES.']['value'] != self.subtitle_block['DES.']['value'],
+            self.revision_blocks[0]['VERIF.']['value'] != self.subtitle_block['VERIF.']['value'],
+            self.revision_blocks[0]['APROV.']['value'] != self.subtitle_block['APROV.']['value']
+        ]):
+            self.error_drawing.ed05['boolean_value'] = True
 
     # Função para verficar Blocos de Peças
     def check_part_block(self):
