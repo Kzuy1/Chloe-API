@@ -38,7 +38,8 @@ class Drawing:
         self.check_line_scale_factor()
         self.check_leader()
         self.check_dimensions_indicate()
-        self.format_block_at_origin()
+        self.check_format_block_at_origin()
+        self.check_dimension_step()
         # # self.check_version_blocks()
         self.check_older_layers()
 
@@ -306,13 +307,41 @@ class Drawing:
                 self.error_drawing.ed23['boolean_value'] = True
                 self.error_drawing.ed23['description'] += f'\t\t\t{dim_name}\n'
 
-    def format_block_at_origin(self):
+    def check_format_block_at_origin(self):
         if (
             self.format_block['x_position'],
             self.format_block['y_position'],
             self.format_block['z_position'],
         ) != (0, 0, 0): 
             self.error_drawing.ed24['boolean_value'] = True
+
+    def check_dimension_step(self):
+        pattern = re.compile(
+            r'\<\>\(\s*([\d.,]+)\s*x\s*([\d.,]+)\s*\)',
+            re.IGNORECASE
+        )
+
+        for dim in self.msp_dxf.query("DIMENSION"):
+            dim_text = dim.dxf.text
+
+            if not dim_text:
+                continue
+
+            match = pattern.search(dim_text)
+            if not match:
+                continue
+
+            qty = float(match.group(1).replace(',', '.'))
+            step = float(match.group(2).replace(',', '.'))
+
+            result = qty * step
+            measured = dim.dxf.actual_measurement
+
+            print('qty:', qty, 'step:', step, 'result:', result, 'measured:', measured, 'error:', abs(result - measured)>1)
+
+            if abs(result - measured) > 1:
+                self.error_drawing.ed25['boolean_value'] = True
+                return
                 
     # Função para verificar se um bloco existe no Desenho
     # def _checkBlockExists(self, blockName):
