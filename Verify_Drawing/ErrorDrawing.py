@@ -8,7 +8,7 @@ class ErrorDrawing:
         self.ed06 = {'description': ':lady_beetle: [Error ED06:](<https://docs.satusequipamentos.com.br/docs/chloe/erros-de-desenho#error-ed06>) LTScale está diferente da metade da Escala do Desenho.','boolean_value': False }
         self.ed07 = {'description': ':lady_beetle: [Error ED07:](<https://docs.satusequipamentos.com.br/docs/chloe/erros-de-desenho#error-ed07>) Camadas obsoletas presentes no desenho:\n','boolean_value': False }
         self.ed08 = {'description': ':lady_beetle: [Error ED08:](<https://docs.satusequipamentos.com.br/docs/chloe/erros-de-desenho#error-ed08>) Linha de Chamada não está na camada COTAS.','boolean_value': False }
-        self.ed09 = {'description': ':lady_beetle: [Error ED09:](<https://docs.satusequipamentos.com.br/docs/chloe/erros-de-desenho#error-ed09>) Deve ter apenas um Bloco de Legenda no mesmo desenho.','boolean_value': False }
+        self.ed09 = {'description': ':lady_beetle: [Error ED09:](<https://docs.satusequipamentos.com.br/docs/chloe/erros-de-desenho#error-ed09>) Lista de blocos duplicados identificados no desenho:','boolean_value': False }
         self.ed10 = {'description': ':lady_beetle: [Error ED10:](<https://docs.satusequipamentos.com.br/docs/chloe/erros-de-desenho#error-ed10>) Bloco de Revisão 0 está com a Data diferente da Data de Emissão no Bloco de Legenda.','boolean_value': False }
         # self.ed11 = {'description': ':lady_beetle: [Error ED11:](<https://docs.satusequipamentos.com.br/docs/chloe/erros-de-desenho#error-ed11>) Bloco de Revisão atual está diferente da Data de Revisão no Bloco de Legenda.','boolean_value': False }
         self.ed12 = {'description': ':lady_beetle: [Error ED12:](<https://docs.satusequipamentos.com.br/docs/chloe/erros-de-desenho#error-ed12>) Bloco de Revisão atual não está preenchido.','boolean_value': False }
@@ -23,6 +23,7 @@ class ErrorDrawing:
         self.ed21 = {'description': ':lady_beetle: [Error ED21:](<https://docs.satusequipamentos.com.br/docs/chloe/erros-de-desenho#error-ed21>) Cota com linha fora do Por Camada:\n','boolean_value': False }
         self.ed22 = {'description': ':lady_beetle: [Error ED22:](<https://docs.satusequipamentos.com.br/docs/chloe/erros-de-desenho#error-ed22>) Cota com escala global incorreta:\n','boolean_value': False }
         self.ed23 = {'description': ':lady_beetle: [Error ED23:](<https://docs.satusequipamentos.com.br/docs/chloe/erros-de-desenho#error-ed23>) Fator de Escala ou Nome da cota incorreta:\n','boolean_value': False }
+        self.ed24 = {'description': ':lady_beetle: [Error ED24:](<https://docs.satusequipamentos.com.br/docs/chloe/erros-de-desenho#error-ed24>) Bloco de Formato não está na origem (0,0,0).','boolean_value': False }
         self.edOB = {'description': ':lady_beetle: [Error EDOB:](<https://docs.satusequipamentos.com.br/docs/chloe/erros-de-desenho#error-ed0b>) Lista de Blocos na versão antiga:\n','boolean_value': False }
         self.edSC = {'description': ':lady_beetle: [Error EDSB:](<>) Lista de Blocos na escala errada:\n','boolean_value': False }
 

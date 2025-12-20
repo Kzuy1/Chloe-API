@@ -23,15 +23,12 @@ class Drawing:
         self.revision_blocks = self.get_block_info('SATUS_REVISAO')
         self.revision_blocks = self.sort_block(self.revision_blocks, 'REV-N')
         self.part_blocks = self.get_block_info('SATUS_LISTA-PECAS')
-
-        # #Verifica se existe dois ou mais Bloco de Título no mesmo Desenho, 
-        if len(self.subtitle_block) != 1:
-            self.error_drawing.ed09['boolean_value'] = True
+        self.format_block = self.get_block_info('SATUS_A1', 'SATUS_A3')
+        
+        if self.has_multiple_blocks():
             self.message = self.error_drawing.get_error_messages()
             return
-        # Se não transforma self.subtitleBlock em um só objeto invés de lista
-        self.subtitle_block = self.subtitle_block[0]
-        
+
         self.check_layer_properties()
         self.check_data_issue()
         self.check_correct_separation()
@@ -41,6 +38,7 @@ class Drawing:
         self.check_line_scale_factor()
         self.check_leader()
         self.check_dimensions_indicate()
+        self.format_block_at_origin()
         # # self.check_version_blocks()
         self.check_older_layers()
 
@@ -55,6 +53,21 @@ class Drawing:
         file.save(full_path)
 
         return full_path
+    
+    def has_multiple_blocks(self) -> bool:
+        if len(self.subtitle_block) != 1:
+            self.error_drawing.ed09['boolean_value'] = True
+            self.error_drawing.ed09['description'] += '\nBloco de Legenda'
+        
+        if len(self.format_block) != 1:
+            self.error_drawing.ed09['boolean_value'] = True
+            self.error_drawing.ed09['description'] += '\nBloco de Formato'
+        
+        if self.error_drawing.ed09['boolean_value'] == False:
+            self.subtitle_block = self.subtitle_block[0]
+            self.format_block = self.format_block[0]
+        
+        return self.error_drawing.ed09['boolean_value']
 
     # Função para pegar o código do Desenho
     def get_drawing_code(self):
@@ -78,24 +91,30 @@ class Drawing:
             self.data_issue = datetime.now().strftime("%d/%m/%y")
 
     # Função para pegar as informações de Blocos
-    def get_block_info(self, block_name):
+    def get_block_info(self, *block_names):
         blocks_list = []
 
-        for insert in self.msp_dxf.query(f'INSERT[name=="{block_name}"]'):
-            block_info = {}
-            
-            for attrib in insert.attribs:
-                tag = attrib.dxf.tag
-                value = attrib.dxf.text
-                height = attrib.dxf.height
-                width_factor = attrib.dxf.width
+        for block_name in block_names:
+            for insert in self.msp_dxf.query(f'INSERT[name=="{block_name}"]'):
+                block_info = {}
+                
+                for attrib in insert.attribs:
+                    tag = attrib.dxf.tag
+                    value = attrib.dxf.text
+                    height = attrib.dxf.height
+                    width_factor = attrib.dxf.width
 
-                block_info[tag] = {'value': value, 'height': height, 'width_factor': width_factor}
-            block_info['x_scale'] = insert.get_dxf_attrib('xscale') or 1
-            block_info['y_scale'] = insert.get_dxf_attrib('yscale') or 1
-            block_info['z_scale'] = insert.get_dxf_attrib('zscale') or 1
+                    block_info[tag] = {'value': value, 'height': height, 'width_factor': width_factor}
+                
+                block_info['x_scale'] = insert.get_dxf_attrib('xscale') or 1
+                block_info['y_scale'] = insert.get_dxf_attrib('yscale') or 1
+                block_info['z_scale'] = insert.get_dxf_attrib('zscale') or 1
+                
+                block_info['x_position'] = insert.dxf.insert[0]
+                block_info['y_position'] = insert.dxf.insert[1]
+                block_info['z_position'] = insert.dxf.insert[2]
 
-            blocks_list.append(block_info)
+                blocks_list.append(block_info)
         
         return blocks_list
     
@@ -286,6 +305,14 @@ class Drawing:
             if scale_factor not in dim_style.dxf.name:
                 self.error_drawing.ed23['boolean_value'] = True
                 self.error_drawing.ed23['description'] += f'\t\t\t{dim_name}\n'
+
+    def format_block_at_origin(self):
+        if (
+            self.format_block['x_position'],
+            self.format_block['y_position'],
+            self.format_block['z_position'],
+        ) != (0, 0, 0): 
+            self.error_drawing.ed24['boolean_value'] = True
                 
     # Função para verificar se um bloco existe no Desenho
     # def _checkBlockExists(self, blockName):
