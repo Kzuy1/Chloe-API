@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, send_file, make_response, after_this_request
 from waitress import serve
-from ExcelToDxf.ListToDxf import ListToDxf
+from ExcelToDxf.ListToDxf import ListToDxf, clear_uploads_list_folder
 from Verify_Drawing.Drawing import Drawing
 from Importa_Part_Attributes_Excel_To_DXF.importAttributesToDxf import import_attributes_from_xlsx, clear_temp
 import os
@@ -22,6 +22,13 @@ def upload_file():
         file.save(excelFile)
 
         convertExcelDXF = ListToDxf(excelFile)
+
+        @after_this_request
+        def cleanup(response):
+            clear_uploads_list_folder('uploads')
+            clear_uploads_list_folder('list')
+            return response
+
         return send_file(convertExcelDXF.target_dxf_path, as_attachment=True, download_name= convertExcelDXF.file_name + ".dxf", mimetype='application/dxf')
     else:
         return jsonify({'message': 'Nenhum arquivo enviado.'}), 400

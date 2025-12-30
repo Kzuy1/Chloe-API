@@ -392,3 +392,10 @@ class Material:
     self.quantity = quantity
     self.composition = composition
     self.total_weight = total_weight
+
+def clear_uploads_list_folder(directory):
+  for root, dirs, files in os.walk(directory, topdown=False):
+        for name in files:
+            os.remove(os.path.join(root, name))
+        for name in dirs:
+            os.rmdir(os.path.join(root, name))
