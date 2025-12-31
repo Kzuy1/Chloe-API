@@ -2,12 +2,13 @@ import ezdxf
 from ezdxf.enums import TextEntityAlignment
 from pymongo import MongoClient
 from json import load
+from utils.file_utils import save_in_temp_folder
 import openpyxl
 import os
 
 class ListToDxf:
   def __init__(self, file):
-    self.full_path = self.save_in_temp_folder(file)
+    self.full_path = save_in_temp_folder(file, __file__)
     self.base_dir = os.path.dirname(os.path.abspath(__file__))
     self.file_name = os.path.splitext(os.path.basename(self.full_path))[0]
     self.workbook = openpyxl.load_workbook(self.full_path, data_only=True)
@@ -53,16 +54,6 @@ class ListToDxf:
 
       # Salva o DXF
       self.doc_dxf.save()
-
-  def save_in_temp_folder(self, file):
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    temp_dir = os.path.join(base_dir, "temp")
-    os.makedirs(temp_dir, exist_ok=True)
-
-    full_path = os.path.join(temp_dir, file.filename)
-    file.save(full_path)
-
-    return full_path
       
   # Função para pegar as Listas do Desenho
   def read_sheets_names(self):

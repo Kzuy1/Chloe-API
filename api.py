@@ -2,7 +2,8 @@ from flask import Flask, request, jsonify, send_file, make_response, after_this_
 from waitress import serve
 from Excel_To_DXF.ListToDxf import ListToDxf
 from Verify_Drawing.Drawing import Drawing
-from Importa_Part_Attributes_Excel_To_DXF.importAttributesToDxf import import_attributes_from_xlsx, clear_temp
+from Importa_Part_Attributes_Excel_To_DXF.importAttributesToDxf import import_attributes_from_xlsx
+from utils.file_utils import clear_temp
 import os
 import asyncio
 import sys

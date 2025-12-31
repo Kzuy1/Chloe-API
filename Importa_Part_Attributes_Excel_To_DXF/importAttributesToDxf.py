@@ -11,14 +11,6 @@ def clear_folder(folder_path):
             if os.path.isfile(file_path):
                 os.remove(file_path)
 
-def clear_temp(directory):
-    for root, dirs, files in os.walk(directory, topdown=False):
-        for name in files:
-            os.remove(os.path.join(root, name))
-        for name in dirs:
-            os.rmdir(os.path.join(root, name))
-    os.rmdir(directory)
-
 def import_attributes_from_xlsx(xlsx_file, zip_file):
     temp_dir = os.path.join(os.path.dirname(__file__), "temp")
     
