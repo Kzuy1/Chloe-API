@@ -2,6 +2,7 @@ from Verify_Drawing.ErrorDrawing import ErrorDrawing
 from Verify_Drawing.Layer import LayerList
 from Verify_Drawing.OldBlocks import BlockList, Entity
 from Verify_Drawing.OldLayers import old_layers
+from utils.file_utils import save_in_temp_folder
 from datetime import datetime
 from json import load
 import ezdxf
@@ -12,7 +13,8 @@ class Drawing:
     def __init__(self, file, data_issue = None):
         self.error_drawing = ErrorDrawing()
         self.data_issue = data_issue
-        self.full_path = self.save_in_temp_folder(file)
+        #self.full_path = self.save_in_temp_folder(file)
+        self.full_path = save_in_temp_folder(file, __file__)
         self.file_drawing_code = self.get_drawing_code()
         self.file_drawing_code_separate = self.get_drawing_code_separate()
         self.layer_list = LayerList()
@@ -44,16 +46,6 @@ class Drawing:
         self.check_older_layers()
 
         self.message = self.error_drawing.get_error_messages()
-
-    def save_in_temp_folder(self, file):
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        temp_dir = os.path.join(base_dir, "temp")
-        os.makedirs(temp_dir, exist_ok=True)
-
-        full_path = os.path.join(temp_dir, file.filename)
-        file.save(full_path)
-
-        return full_path
     
     def has_multiple_blocks(self) -> bool:
         if len(self.subtitle_block) != 1:
@@ -336,8 +328,6 @@ class Drawing:
 
             result = qty * step
             measured = dim.dxf.actual_measurement
-
-            print('qty:', qty, 'step:', step, 'result:', result, 'measured:', measured, 'error:', abs(result - measured)>1)
 
             if abs(result - measured) > 1:
                 self.error_drawing.ed25['boolean_value'] = True

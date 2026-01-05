@@ -2,15 +2,16 @@ import ezdxf
 from ezdxf.enums import TextEntityAlignment
 from pymongo import MongoClient
 from json import load
+from utils.file_utils import save_in_temp_folder
 import openpyxl
 import os
 
 class ListToDxf:
-  def __init__(self, full_path):
-    self.full_path = full_path
-    self.father_path = os.path.abspath(".")
+  def __init__(self, file):
+    self.full_path = save_in_temp_folder(file, __file__)
+    self.base_dir = os.path.dirname(os.path.abspath(__file__))
     self.file_name = os.path.splitext(os.path.basename(self.full_path))[0]
-    self.workbook = openpyxl.load_workbook(full_path, data_only=True)
+    self.workbook = openpyxl.load_workbook(self.full_path, data_only=True)
     self.drawn_list = self.read_sheets_names()
     self.project_code = self.get_project_code()
     self.drawn_language = self.find_standard_language()
@@ -111,13 +112,15 @@ class ListToDxf:
     
   # Função para copiar o Template e criar um novo arquivo para Edição
   def create_DXF_file(self):
-    target_dxf_path = self.father_path + "/list/" + self.file_name + '.dxf'
+    output_dir = os.path.join(self.base_dir, "temp")
+    os.makedirs(output_dir, exist_ok=True)
+    target_dxf_path = os.path.join(output_dir, self.file_name + ".dxf")
 
     # Caso arquivo exista ele irá remover
     if os.path.isfile(target_dxf_path):
       os.remove(target_dxf_path)
 
-    source_dxf = ezdxf.readfile(self.father_path + '/ExcelToDxf/BLOCO-BRANCO.dxf')
+    source_dxf = ezdxf.readfile(os.path.join(self.base_dir, "BLOCO-BRANCO.dxf"))
     source_dxf.saveas(target_dxf_path)
     
     return target_dxf_path

@@ -10,4 +10,4 @@ test.py
 *.bak
 *.dxf
 
-!ExcelToDxf/BLOCO-BRANCO.dxf
+!Excel_To_DXF/BLOCO-BRANCO.dxf

@@ -1,8 +1,9 @@
 from flask import Flask, request, jsonify, send_file, make_response, after_this_request
 from waitress import serve
-from ExcelToDxf.ListToDxf import ListToDxf
+from Excel_To_DXF.ListToDxf import ListToDxf
 from Verify_Drawing.Drawing import Drawing
-from Importa_Part_Attributes_Excel_To_DXF.importAttributesToDxf import import_attributes_from_xlsx, clear_temp
+from Importa_Part_Attributes_Excel_To_DXF.importAttributesToDxf import import_attributes_from_xlsx
+from utils.file_utils import clear_temp
 import os
 import asyncio
 import sys
@@ -16,12 +17,17 @@ def pagina_padrao():
 @app.route('/upload', methods=['POST'])
 def upload_file():
     file = request.files['file']
-    if file:
-        filename = file.filename
-        excelFile = os.path.join('uploads', filename)
-        file.save(excelFile)
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    temp_dir = os.path.join(base_dir, 'Excel_To_DXF', 'temp')
 
-        convertExcelDXF = ListToDxf(excelFile)
+    if file:
+        convertExcelDXF = ListToDxf(file)
+    
+        @after_this_request
+        def cleanup(response):
+            clear_temp(temp_dir)
+            return response
+
         return send_file(convertExcelDXF.target_dxf_path, as_attachment=True, download_name= convertExcelDXF.file_name + ".dxf", mimetype='application/dxf')
     else:
         return jsonify({'message': 'Nenhum arquivo enviado.'}), 400
