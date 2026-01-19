@@ -7,6 +7,7 @@ from utils.file_utils import clear_temp
 import os
 import asyncio
 import sys
+import gc
 
 app = Flask(__name__)
 
@@ -41,13 +42,18 @@ def routeVerifyDrawing():
 
     if file:
         verify_drawing = Drawing(file, data_issue)
-    
+        result = verify_drawing.message
+
+
+        del verify_drawing
+        gc.collect()
+
         @after_this_request
         def cleanup(response):
             clear_temp(temp_dir)
             return response
 
-        return make_response(verify_drawing.message, 200, {'Content-Type': 'text/plain'})
+        return make_response(result, 200, {'Content-Type': 'text/plain'})
     else:
         return jsonify({'message': 'Nenhum arquivo enviado.'}), 400
     
