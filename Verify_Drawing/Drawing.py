@@ -13,7 +13,6 @@ class Drawing:
     def __init__(self, file, data_issue = None):
         self.error_drawing = ErrorDrawing()
         self.data_issue = data_issue
-        #self.full_path = self.save_in_temp_folder(file)
         self.full_path = save_in_temp_folder(file, __file__)
         self.file_drawing_code = self.get_drawing_code()
         self.file_drawing_code_separate = self.get_drawing_code_separate()
@@ -147,22 +146,30 @@ class Drawing:
 
     # Função para verificar se está separado certo o codigo
     def check_correct_separation(self):
-        regex_code = r'^[A-Z0-9]{4}-[A-Z0-9]{7}-[0-9]{3}_[0-9]{2}$'
+        regex_code = None
+
+        # REMOVER FLAG EM 28/03/26
+        if self.file_drawing_code.startswith("EM"):
+            regex_code = r'^[A-Z0-9]{4}-[A-Z0-9]{7}-[0-9]{3}_[0-9]{2}$'
+        elif self.file_drawing_code.startswith("STS"):
+            regex_code = r'^STS-[A-Z0-9]{7}-[A-Z0-9]{3}-[0-9]{5}_[0-9]{2}$'
+
+        if regex_code is None:
+            self.error_drawing.ed01['boolean_value'] = True
+            return
 
         if not re.match(regex_code, self.file_drawing_code):
             self.error_drawing.ed01['boolean_value'] = True
 
-            if len(self.file_drawing_code_separate) == 4:
-                self.error_drawing.ed01['description'] += f' Correto: {self.file_drawing_code_separate[0]}-{self.file_drawing_code_separate[1]}-{self.file_drawing_code_separate[2]}_{self.file_drawing_code_separate[3]}'
-
     # Função para verificar as informações do Bloco de Título do Desenho
     def check_subtitle_block(self):
-        # Verifica cada chave e seu valor correspondente somente se o Error 01 não tiver ativo
         if not self.error_drawing.ed01['boolean_value']:
-            # Chaves do Código do Desenho
+            code_value = "-".join(self.file_drawing_code_separate[:-1])
+            revision_value = self.file_drawing_code_separate[-1] 
+
             key_codes = {
-                'CODIGO-1': self.file_drawing_code_separate[0]+'-'+self.file_drawing_code_separate[1]+'-'+self.file_drawing_code_separate[2],
-                'REVISAO': self.file_drawing_code_separate[3]
+                'CODIGO-1': code_value,
+                'REVISAO': revision_value
             }
 
             for key, key_value in key_codes.items():
@@ -184,12 +191,12 @@ class Drawing:
                 self.error_drawing.edSC['description'] += f'\t\t\tSATUS_REVISAO - Bloco de Revisão {revision_block["REV-N"]["value"]}\n'
 
         # Verifica se existe bloco de revisão correspondente a quantidade de revisões
-        if len(self.revision_blocks) < int(self.file_drawing_code_separate[3]) + 1:
+        if len(self.revision_blocks) < int(self.file_drawing_code_separate[-1]) + 1:
             self.error_drawing.ed12['boolean_value'] = True
             return
 
         # Verifica Bloco de Revisão até última Revisão se está Preenchido
-        current_review_block = self.revision_blocks[int(self.file_drawing_code_separate[3])]
+        current_review_block = self.revision_blocks[int(self.file_drawing_code_separate[-1])]
         for attribs in current_review_block.values():
             if isinstance(attribs, dict) and attribs['value'] == '':
                 self.error_drawing.ed12['boolean_value'] = True
@@ -200,15 +207,15 @@ class Drawing:
             self.error_drawing.ed10['boolean_value'] = True
         
         # Verifica se a data da revisão atual do desenho condiz com a Date de Emissão do Usuário, Padrão: Data de Hoje
-        if self.revision_blocks[int(self.file_drawing_code_separate[3])]['REV-D']['value'] != self.data_issue:
+        if self.revision_blocks[int(self.file_drawing_code_separate[-1])]['REV-D']['value'] != self.data_issue:
             self.error_drawing.ed13['boolean_value'] = True
             self.error_drawing.ed13['description'] += self.data_issue
 
         # Verificar a revisão de pares a mesma pessoa está atribuída a mais de um papel na Revisão de Pares
         revision_responsibles = []
-        revision_responsibles.append(self.revision_blocks[int(self.file_drawing_code_separate[3])]['DES.']['value'].strip().upper())
-        revision_responsibles.append(self.revision_blocks[int(self.file_drawing_code_separate[3])]['VERIF.']['value'].strip().upper())
-        revision_responsibles.append(self.revision_blocks[int(self.file_drawing_code_separate[3])]['APROV.']['value'].strip().upper())
+        revision_responsibles.append(self.revision_blocks[int(self.file_drawing_code_separate[-1])]['DES.']['value'].strip().upper())
+        revision_responsibles.append(self.revision_blocks[int(self.file_drawing_code_separate[-1])]['VERIF.']['value'].strip().upper())
+        revision_responsibles.append(self.revision_blocks[int(self.file_drawing_code_separate[-1])]['APROV.']['value'].strip().upper())
         
         if len(revision_responsibles) != len(set(revision_responsibles)):
             self.error_drawing.ed04['boolean_value'] = True
