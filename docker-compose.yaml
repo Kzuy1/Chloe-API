@@ -1,6 +1,6 @@
 services:
   api:
-    container_name: docker-maneiro
+    container_name: web-server
     build: .
     ports:
       - "3000:3000"
