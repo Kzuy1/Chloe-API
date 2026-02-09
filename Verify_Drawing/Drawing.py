@@ -2,7 +2,7 @@ from Verify_Drawing.ErrorDrawing import ErrorDrawing
 from Verify_Drawing.Layer import LayerList
 from Verify_Drawing.OldBlocks import BlockList, Entity
 from Verify_Drawing.OldLayers import old_layers
-from utils.file_utils import save_in_temp_folder
+from utils.file_utils import save_in_temp_folder, convert_file
 from datetime import datetime
 from json import load
 import ezdxf
@@ -14,6 +14,7 @@ class Drawing:
         self.error_drawing = ErrorDrawing()
         self.data_issue = data_issue
         self.full_path = save_in_temp_folder(file, __file__)
+        self.convert_to_dxt()
         self.file_drawing_code = self.get_drawing_code()
         self.file_drawing_code_separate = self.get_drawing_code_separate()
         self.layer_list = LayerList()
@@ -60,6 +61,17 @@ class Drawing:
             self.format_block = self.format_block[0]
         
         return self.error_drawing.ed09['boolean_value']
+    
+    # Função para converter o arquivo
+    def convert_to_dxt(self):
+        ext = os.path.splitext(self.full_path)[1].lower()
+
+        if ext == ".dwg":
+            self.full_path = convert_file(
+                self.full_path,
+                output_extension="dxf",
+                cad_version="ACAD2010"
+            )
 
     # Função para pegar o código do Desenho
     def get_drawing_code(self):
