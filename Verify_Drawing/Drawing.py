@@ -1,13 +1,13 @@
 from Verify_Drawing.ErrorDrawing import ErrorDrawing
 from Verify_Drawing.Layer import LayerList
-from Verify_Drawing.OldBlocks import BlockList, Entity
+from Verify_Drawing.Blocks import BlockList, Entity, BlockScaleError
 from Verify_Drawing.OldLayers import old_layers
 from utils.file_utils import save_in_temp_folder, convert_file
 from datetime import datetime
-from json import load
 import ezdxf
 import os
 import re
+import math
 
 class Drawing:
     def __init__(self, file, data_issue = None):
@@ -25,7 +25,7 @@ class Drawing:
         self.revision_blocks = self.get_block_info('SATUS_REVISAO')
         self.revision_blocks = self.sort_block(self.revision_blocks, 'REV-N')
         self.part_blocks = self.get_block_info('SATUS_LISTA-PECAS')
-        self.format_block = self.get_block_info('SATUS_A1', 'SATUS_A3')
+        self.format_block = self.get_block_info('SATUS_A1', 'SATUS_A2','SATUS_A3')
         
         if self.has_multiple_blocks():
             self.message = self.error_drawing.get_error_messages()
@@ -44,6 +44,7 @@ class Drawing:
         self.check_dimension_step()
         # # self.check_version_blocks()
         self.check_older_layers()
+        self.check_blocks_scale()
 
         self.message = self.error_drawing.get_error_messages()
     
@@ -347,22 +348,73 @@ class Drawing:
 
             result = qty * step
             measured = dim.dxf.actual_measurement
+            tolerance = 1.15
 
-            if abs(result - measured) > 1:
+            if abs(result - measured) > tolerance:
                 self.error_drawing.ed25['boolean_value'] = True
                 return
-                
+    
+    # Função para verificar escala dos blocos
+    def validate_block_insert(self, insert, block):
+        x_scale = insert.dxf.xscale
+        y_scale = insert.dxf.yscale
+        z_scale = insert.dxf.zscale
+        rotation = insert.dxf.rotation % 360
+
+        allowed_rotation_for_mirrored = 0.0
+        tolerance = 0.001
+        if not block.allow_mirrored and (x_scale < 0 or y_scale < 0 or not math.isclose(rotation, allowed_rotation_for_mirrored, abs_tol=tolerance)):
+            return BlockScaleError.MIRRORED
+        
+        if not any(math.isclose(z_scale, s * self.subtitle_block['z_scale'], abs_tol=tolerance) for s in block.allowed_scales):
+            return BlockScaleError.SCALED
+
+        if block.allowed_rotations and not any(math.isclose(rotation, r, abs_tol=tolerance) for r in block.allowed_rotations):
+            return BlockScaleError.ROTATED
+        
+    # Função para procurar blocos
+    def check_blocks_scale(self):
+        blocks_to_check = BlockList()
+        blocks_checked = set()
+        blocks_to_check.add_list_blocks_check_scale()
+        blocks_index = {block.name: block for block in blocks_to_check.blocks}
+
+        for insert in self.msp_dxf.query("INSERT"):
+            block_name = insert.dxf.name
+            block = blocks_index.get(block_name)
+
+            if not block or block_name in blocks_checked:
+                continue
+            
+            error = self.validate_block_insert(insert, block)
+
+            if error is None:
+                continue
+
+            print(error)
+
+            blocks_checked.add(block_name)
+
+            if error == BlockScaleError.MIRRORED:
+                self._concat_block_error(self.error_drawing.edSC, block.name, block.description, "Bloco espelhado")
+
+            if error == BlockScaleError.SCALED:
+                self._concat_block_error(self.error_drawing.edSC, block.name, block.description, "Escala incorreta")
+
+            if error == BlockScaleError.ROTATED:
+                self._concat_block_error(self.error_drawing.edSC, block.name, block.description, "Rotação incorreta")
+
     # Função para verificar se um bloco existe no Desenho
     # def _checkBlockExists(self, blockName):
     #     block = self.doc_dxf.blocks.get(blockName)
 
+    # Função adicionar nome do Bloco e Descrição no Error
+    def _concat_block_error(self, error: dict, block_name: str, block_description: str, error_description: str):
+        error['boolean_value'] = True
+        error['description'] += f'\t\t\t{block_name} - {block_description} - {error_description}\n'
     #     if block is not None:
     #         return True
     
-    # # Função adicionar nome do Bloco e Descrição no Error EDOB
-    # def _concat_blockname_error(self, block_name, description):
-    #     self.error_drawing.edOB['boolean_value'] = True
-    #     self.error_drawing.edOB['description'] += f'\t\t\t{block_name} - {description}\n'
 
     # def inspect_block(self, block_name: str, expected: Entity) -> bool:
     #     block = self.doc_dxf.blocks.get(block_name)

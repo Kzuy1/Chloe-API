@@ -1,7 +1,4 @@
 import ezdxf
-from ezdxf.enums import TextEntityAlignment
-from pymongo import MongoClient
-from json import load
 from utils.file_utils import save_in_temp_folder
 import openpyxl
 import os
@@ -14,7 +11,6 @@ class ListToDxf:
     self.workbook = openpyxl.load_workbook(self.full_path, data_only=True)
     self.drawn_list = self.read_sheets_names()
     self.project_code = self.get_project_code()
-    self.drawn_language = self.find_standard_language()
     self.target_dxf_path = self.create_DXF_file()
     self.doc_dxf = ezdxf.readfile(self.target_dxf_path)
     self.msp_dxf = self.doc_dxf.modelspace()
@@ -91,24 +87,6 @@ class ListToDxf:
         highestCount = count
 
     return projectCode
-
-  # Função para pegar a Standard do Banco de Dados.
-  def find_standard_language(self):
-    # Conectar ao MongoDB
-    with open('config.json', 'r') as fileConfig:
-      config = load(fileConfig)
-
-    # Procura no Banco de Dados - EMBRATECENG na Collection - Projects a informações de Standard do código do Projeto
-    mongoClient = MongoClient(config['mongoUrl'])
-    mongoDatabase = mongoClient.get_database('EMBRATECENG')
-    collectionProjects = mongoDatabase['projects']
-    result = collectionProjects.find_one({"cod": self.project_code})
-    mongoClient.close()
-
-    # Caso não ache use o Brazil como referencia
-    standard_project = result['standard'] if result else 'brazil'
-  
-    return standard_project
     
   # Função para copiar o Template e criar um novo arquivo para Edição
   def create_DXF_file(self):
