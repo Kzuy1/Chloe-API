@@ -9,5 +9,6 @@ test.py
 *.dwl
 *.bak
 *.dxf
+*.dwg
 
 !Excel_To_DXF/BLOCO-BRANCO.dxf
