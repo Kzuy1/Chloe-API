@@ -25,8 +25,8 @@ class ErrorDrawing:
         self.ed23 = {'description': ':lady_beetle: [Error ED23:](<https://docs.satusequipamentos.com.br/docs/chloe/erros-de-desenho#error-ed23>) Fator de Escala ou Nome da cota incorreta:\n','boolean_value': False }
         self.ed24 = {'description': ':lady_beetle: [Error ED24:](<https://docs.satusequipamentos.com.br/docs/chloe/erros-de-desenho#error-ed24>) Bloco de Formato não está na origem (0,0,0).','boolean_value': False }
         self.ed25 = {'description': ':lady_beetle: [Error ED25:](<https://docs.satusequipamentos.com.br/docs/chloe/erros-de-desenho#error-ed25>) Cota com Passo x Quantidade divergente da Dimensão.','boolean_value': False }
+        self.ed26 = {'description': ':lady_beetle: [Error ED26:](<https://docs.satusequipamentos.com.br/docs/chloe/erros-de-desenho#error-ed26>) Lista de Blocos na escala errada:\n','boolean_value': False }
         self.edOB = {'description': ':lady_beetle: [Error EDOB:](<https://docs.satusequipamentos.com.br/docs/chloe/erros-de-desenho#error-ed0b>) Lista de Blocos na versão antiga:\n','boolean_value': False }
-        self.edSC = {'description': ':lady_beetle: [Error EDSC:](<>) Lista de Blocos na escala errada:\n','boolean_value': False }
 
     # self.edXX = {'description': ':lady_beetle: [Error EDXX:](<>) XXXXXXXXX','boolean_value': False }
         

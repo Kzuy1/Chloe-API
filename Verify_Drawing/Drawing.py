@@ -197,12 +197,6 @@ class Drawing:
 
     # Função para verificar Escala dos Blocos de Revisão
     def check_revision_block(self):
-        for revision_block in self.revision_blocks:
-            # Verifica Escala do Bloco de Revisão
-            if abs(self.subtitle_block['x_scale'] - revision_block['x_scale']) > 0.0001 :
-                self.error_drawing.edSC['boolean_value'] = True
-                self.error_drawing.edSC['description'] += f'\t\t\tSATUS_REVISAO - Bloco de Revisão {revision_block["REV-N"]["value"]}\n'
-
         # Verifica se existe bloco de revisão correspondente a quantidade de revisões
         if len(self.revision_blocks) < int(self.file_drawing_code_separate[-1]) + 1:
             self.error_drawing.ed12['boolean_value'] = True
@@ -396,13 +390,13 @@ class Drawing:
             blocks_checked.add(block_name)
 
             if error == BlockScaleError.MIRRORED:
-                self._concat_block_error(self.error_drawing.edSC, block.name, block.description, "Bloco espelhado")
+                self._concat_block_error(self.error_drawing.ed26, block.name, block.description, "Bloco espelhado")
 
             if error == BlockScaleError.SCALED:
-                self._concat_block_error(self.error_drawing.edSC, block.name, block.description, "Escala incorreta")
+                self._concat_block_error(self.error_drawing.ed26, block.name, block.description, "Escala incorreta")
 
             if error == BlockScaleError.ROTATED:
-                self._concat_block_error(self.error_drawing.edSC, block.name, block.description, "Rotação incorreta")
+                self._concat_block_error(self.error_drawing.ed26, block.name, block.description, "Rotação incorreta")
 
     # Função para verificar se um bloco existe no Desenho
     # def _checkBlockExists(self, blockName):
