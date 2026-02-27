@@ -85,7 +85,7 @@ class BlockList:
         self.add_block(name='SATUS_CORTE', description='Bloco de Indicação de Corte', allowed_scales=[1.0], allow_mirrored=True)
         self.add_block(name='SATUS_VISTO', description='Bloco de Indicação de Visto', allowed_scales=[1.0], allow_mirrored=True)
         
-        # self.add_block(name='', description='', allowed_scales=[1.0], allow_mirrored=False). 
+        # self.add_block(name='', description='', allowed_scales=[1.0], allow_mirrored=False)
 
 
 
