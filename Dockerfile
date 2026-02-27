@@ -37,7 +37,7 @@ RUN apt-get update && apt-get install -y \
 
 RUN pip install --upgrade pip
 
-RUN wget "https://www.opendesign.com/guestfiles/get?filename=ODAFileConverter_QT6_lnxX64_8.3dll_26.12.deb" -O oda.deb \
+RUN wget "https://www.opendesign.com/guestfiles/get?filename=ODAFileConverter_QT6_lnxX64_8.3dll_27.1.deb" -O oda.deb \
     && apt-get install -y ./oda.deb \
     && rm oda.deb \
     && ln -s /usr/bin/ODAFileConverter_26.12.0.0/ODAFileConverter /usr/local/bin/ODAFileConverter
