@@ -79,7 +79,7 @@ class BlockList:
         self.add_block(name='SATUS_LINHA-DE-DIVISAO', description='Bloco de Linha de Divisão', allowed_scales=[1.0], allow_mirrored=False)
 
         self.add_block(name='SATUS_INDICACAO-REVISAO', description='Bloco de Indicação de Revisão', allowed_scales=[1.0], allowed_rotations=[0.0], allow_mirrored=True)
-        self.add_block(name='SATUS_INDICACAO-POS', description='Bloco de Indicação de Posição', allowed_scales=[1.0], allowed_rotations=[0.0], allow_mirrored=True)
+        self.add_block(name='SATUS_INDICACAO-POS', description='Bloco de Indicação de Posição', allowed_scales=[0.8, 1.0], allowed_rotations=[0.0], allow_mirrored=True)
         self.add_block(name='SATUS_INDICACAO-NIVEL', description='Bloco de Indicação de Nível', allowed_scales=[1.0], allow_mirrored=True)
         self.add_block(name='SATUS_INDICACAO-TAG', description='Bloco de Indicação de Tag', allowed_scales=[1.0], allow_mirrored=True)
         self.add_block(name='SATUS_CORTE', description='Bloco de Indicação de Corte', allowed_scales=[1.0], allow_mirrored=True)
