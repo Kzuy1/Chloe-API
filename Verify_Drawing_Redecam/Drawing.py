@@ -15,26 +15,26 @@ class Drawing:
         self.data_issue = data_issue
         self.full_path = save_in_temp_folder(file, __file__)
         self.convert_to_dxt()
-        # self.file_drawing_code = self.get_drawing_code()
-        # self.file_drawing_code_separate = self.get_drawing_code_separate()
+        self.file_drawing_code = self.get_drawing_code()
+        self.file_drawing_code_separate = self.get_drawing_code_separate()
         self.layer_list = LayerList()
         self.layer_list.add_default_layer()
         self.doc_dxf = ezdxf.readfile(self.full_path)
         self.msp_dxf = self.doc_dxf.modelspace()
-        # self.subtitle_block = self.get_block_info('SATUS_LEGENDA')
+        self.subtitle_block = self.get_block_info('REDECAM_TITLE-BLOCK')
         # self.revision_blocks = self.get_block_info('SATUS_REVISAO')
         # self.revision_blocks = self.sort_block(self.revision_blocks, 'REV-N')
         # self.part_blocks = self.get_block_info('SATUS_LISTA-PECAS')
-        # self.format_block = self.get_block_info('SATUS_A1', 'SATUS_A2','SATUS_A3')
+        self.format_block = self.get_block_info('REDE-A0', 'REDECAM_A1','REDECAM_A3')
         
-        # if self.has_multiple_blocks():
-        #     self.message = self.error_drawing.get_error_messages()
-        #     return
+        if self.has_multiple_blocks():
+            self.message = self.error_drawing.get_error_messages()
+            return
 
         self.check_layer_properties()
-        # self.check_data_issue()
-        # self.check_correct_separation()
-        # self.check_subtitle_block()
+        self.check_data_issue()
+        self.check_correct_separation()
+        self.check_subtitle_block()
         # self.check_revision_block()
         # self.check_part_block()
         # self.check_line_scale_factor()
@@ -159,17 +159,7 @@ class Drawing:
 
     # Função para verificar se está separado certo o codigo
     def check_correct_separation(self):
-        regex_code = None
-
-        # REMOVER FLAG EM 28/03/26
-        if self.file_drawing_code.startswith("EM"):
-            regex_code = r'^[A-Z0-9]{4}-[A-Z0-9]{7}-[0-9]{3}_[0-9]{2}$'
-        elif self.file_drawing_code.startswith("STS"):
-            regex_code = r'^STS-[A-Z0-9]{7}-[A-Z0-9]{3}-[0-9]{5}_[0-9]{2}$'
-
-        if regex_code is None:
-            self.error_drawing.er01['boolean_value'] = True
-            return
+        regex_code = r'^[A-Z0-9]{7}(\.[0-9]+)?(-[A-Z0-9-]+)?_[A-Z]{3}-[0-9]{3}_[0-9]{2}$'
 
         if not re.match(regex_code, self.file_drawing_code):
             self.error_drawing.er01['boolean_value'] = True
@@ -177,21 +167,30 @@ class Drawing:
     # Função para verificar as informações do Bloco de Título do Desenho
     def check_subtitle_block(self):
         if not self.error_drawing.er01['boolean_value']:
-            code_value = "-".join(self.file_drawing_code_separate[:-1])
-            revision_value = self.file_drawing_code_separate[-1] 
+            if self.subtitle_block['FROM-DWG']['value'] + '_' + self.subtitle_block['REV']['value'] != self.file_drawing_code:
+                self.error_drawing.er02['boolean_value'] = True
+                print('1')
+            
+            if self.subtitle_block['COMBOFIELD1']['value'] + '_' + self.subtitle_block['DOC']['value'] + '-' + self.subtitle_block['NUM']['value'] != self.subtitle_block['FROM-DWG']['value']:
+                self.error_drawing.er02['boolean_value'] = True
+                print('2')
 
-            key_codes = {
-                'CODIGO-1': code_value,
-                'REVISAO': revision_value
-            }
+            join_combofield = self.subtitle_block['PRN']['value'] + self.subtitle_block['LIN']['value']
+            if self.subtitle_block['ITESIN']['value']:
+                join_combofield += '-' + self.subtitle_block['ITESIN']['value']
+            if join_combofield != self.subtitle_block['COMBOFIELD1']['value']:
+                self.error_drawing.er02['boolean_value'] = True
+                print('3')
 
-            for key, key_value in key_codes.items():
-                if self.subtitle_block[key]['value'] != key_value:
-                    self.error_drawing.er02['boolean_value'] = True
-                    break
+            join_itemsin = self.subtitle_block['ITE']['value']
+            if self.subtitle_block['SIN']['value']:
+                join_itemsin += '-' + self.subtitle_block['SIN']['value']
+            if join_itemsin != self.subtitle_block['ITESIN']['value']:
+                self.error_drawing.er02['boolean_value'] = True
+                print('4')
 
         # Verifica se a escala condiz com o que está escrito
-        scale_subtitle = self.subtitle_block['ESCALA']['value']
+        scale_subtitle = self.subtitle_block['SCA']['value']
         if scale_subtitle in ('', "1:XX") or abs(float(scale_subtitle.replace("1:", "")) - self.subtitle_block['x_scale']) > 0.0001:
             self.error_drawing.er03['boolean_value'] = True
 
