@@ -50,18 +50,18 @@ class Drawing:
     
     def has_multiple_blocks(self) -> bool:
         if len(self.subtitle_block) != 1:
-            self.error_drawing.ed09['boolean_value'] = True
-            self.error_drawing.ed09['description'] += '\nBloco de Legenda'
+            self.error_drawing.er09['boolean_value'] = True
+            self.error_drawing.er09['description'] += '\nBloco de Legenda'
         
         if len(self.format_block) != 1:
-            self.error_drawing.ed09['boolean_value'] = True
-            self.error_drawing.ed09['description'] += '\nBloco de Formato'
+            self.error_drawing.er09['boolean_value'] = True
+            self.error_drawing.er09['description'] += '\nBloco de Formato'
         
-        if self.error_drawing.ed09['boolean_value'] == False:
+        if self.error_drawing.er09['boolean_value'] == False:
             self.subtitle_block = self.subtitle_block[0]
             self.format_block = self.format_block[0]
         
-        return self.error_drawing.ed09['boolean_value']
+        return self.error_drawing.er09['boolean_value']
     
     # Função para converter o arquivo
     def convert_to_dxt(self):
@@ -154,7 +154,7 @@ class Drawing:
                 line_type != default_layer.line_type or 
                 line_weight != default_layer.line_weight or
                 true_color is not None):
-                    self.error_drawing.ed14['boolean_value'] = True
+                    self.error_drawing.er14['boolean_value'] = True
                     return
 
     # Função para verificar se está separado certo o codigo
@@ -168,15 +168,15 @@ class Drawing:
             regex_code = r'^STS-[A-Z0-9]{7}-[A-Z0-9]{3}-[0-9]{5}_[0-9]{2}$'
 
         if regex_code is None:
-            self.error_drawing.ed01['boolean_value'] = True
+            self.error_drawing.er01['boolean_value'] = True
             return
 
         if not re.match(regex_code, self.file_drawing_code):
-            self.error_drawing.ed01['boolean_value'] = True
+            self.error_drawing.er01['boolean_value'] = True
 
     # Função para verificar as informações do Bloco de Título do Desenho
     def check_subtitle_block(self):
-        if not self.error_drawing.ed01['boolean_value']:
+        if not self.error_drawing.er01['boolean_value']:
             code_value = "-".join(self.file_drawing_code_separate[:-1])
             revision_value = self.file_drawing_code_separate[-1] 
 
@@ -187,36 +187,36 @@ class Drawing:
 
             for key, key_value in key_codes.items():
                 if self.subtitle_block[key]['value'] != key_value:
-                    self.error_drawing.ed02['boolean_value'] = True
+                    self.error_drawing.er02['boolean_value'] = True
                     break
 
         # Verifica se a escala condiz com o que está escrito
         scale_subtitle = self.subtitle_block['ESCALA']['value']
         if scale_subtitle in ('', "1:XX") or abs(float(scale_subtitle.replace("1:", "")) - self.subtitle_block['x_scale']) > 0.0001:
-            self.error_drawing.ed03['boolean_value'] = True
+            self.error_drawing.er03['boolean_value'] = True
 
     # Função para verificar Escala dos Blocos de Revisão
     def check_revision_block(self):
         # Verifica se existe bloco de revisão correspondente a quantidade de revisões
         if len(self.revision_blocks) < int(self.file_drawing_code_separate[-1]) + 1:
-            self.error_drawing.ed12['boolean_value'] = True
+            self.error_drawing.er12['boolean_value'] = True
             return
 
         # Verifica Bloco de Revisão até última Revisão se está Preenchido
         current_review_block = self.revision_blocks[int(self.file_drawing_code_separate[-1])]
         for attribs in current_review_block.values():
             if isinstance(attribs, dict) and attribs['value'] == '':
-                self.error_drawing.ed12['boolean_value'] = True
+                self.error_drawing.er12['boolean_value'] = True
                 return
 
         # Verifica se a data Bloco de Revisão 0 é o mesmo no Bloco de Legenda
         if self.revision_blocks[0]['REV-D']['value'] != self.subtitle_block['DATA']['value']:
-            self.error_drawing.ed10['boolean_value'] = True
+            self.error_drawing.er10['boolean_value'] = True
         
         # Verifica se a data da revisão atual do desenho condiz com a Date de Emissão do Usuário, Padrão: Data de Hoje
         if self.revision_blocks[int(self.file_drawing_code_separate[-1])]['REV-D']['value'] != self.data_issue:
-            self.error_drawing.ed13['boolean_value'] = True
-            self.error_drawing.ed13['description'] += self.data_issue
+            self.error_drawing.er13['boolean_value'] = True
+            self.error_drawing.er13['description'] += self.data_issue
 
         # Verificar a revisão de pares a mesma pessoa está atribuída a mais de um papel na Revisão de Pares
         revision_responsibles = []
@@ -225,7 +225,7 @@ class Drawing:
         revision_responsibles.append(self.revision_blocks[int(self.file_drawing_code_separate[-1])]['APROV.']['value'].strip().upper())
         
         if len(revision_responsibles) != len(set(revision_responsibles)):
-            self.error_drawing.ed04['boolean_value'] = True
+            self.error_drawing.er04['boolean_value'] = True
 
         # Verificar se revisão de pares do Bloco 0 está igual ao Bloco de Título
         if any([
@@ -233,7 +233,7 @@ class Drawing:
             self.revision_blocks[0]['VERIF.']['value'] != self.subtitle_block['VERIF.']['value'],
             self.revision_blocks[0]['APROV.']['value'] != self.subtitle_block['APROV.']['value']
         ]):
-            self.error_drawing.ed05['boolean_value'] = True
+            self.error_drawing.er05['boolean_value'] = True
 
     # Função para verficar Blocos de Peças
     def check_part_block(self):
@@ -243,7 +243,7 @@ class Drawing:
         for part_block in self.part_blocks:
             # Verifica se o Peso está com Ponto
             if '.' in part_block["PESO_UNIT."]['value'] or '.' in part_block["PESO_TOTAL"]['value']:
-                self.error_drawing.ed15['boolean_value'] = True
+                self.error_drawing.er15['boolean_value'] = True
 
             # Verifica se a multiplicação do peso bate
             part_qty = float(part_block["QTDE."]['value'])
@@ -251,7 +251,7 @@ class Drawing:
             part_total_weight = float(part_block["PESO_TOTAL"]['value'].replace(',', '.'))
             
             if abs(part_qty * part_weight - part_total_weight) > 0.0001:
-                self.error_drawing.ed16['boolean_value'] = True
+                self.error_drawing.er16['boolean_value'] = True
 
             # Realiza soma do peso total e soma do peso somente das peças de aço.
             sum_weight += part_total_weight
@@ -269,8 +269,8 @@ class Drawing:
                 total_weight_approx = re.sub(r'\D', '', entity.dxf.text)
 
                 if abs(round(compare_weight) - float(total_weight_approx)) > 0.1:
-                    self.error_drawing.ed20['boolean_value'] = True
-                    self.error_drawing.ed20['description'] += f"{round(compare_weight)} kg"
+                    self.error_drawing.er20['boolean_value'] = True
+                    self.error_drawing.er20['description'] += f"{round(compare_weight)} kg"
                     break
 
     # Função para verificar o LTScale
@@ -278,13 +278,13 @@ class Drawing:
         ltscale = self.doc_dxf.header['$LTSCALE']
 
         if abs(self.subtitle_block['x_scale']/2 - ltscale) > 0.0001  :
-            self.error_drawing.ed06['boolean_value'] = True
+            self.error_drawing.er06['boolean_value'] = True
 
     # Função para verificar as linhas de chamadas
     def check_leader(self):
         for leader in self.msp_dxf.query('LEADER'):
             if leader.dxf.layer != 'COTAS':
-                self.error_drawing.ed08['boolean_value'] = True
+                self.error_drawing.er08['boolean_value'] = True
                 return
     
     # Função para verificar as especificações da Cotas
@@ -298,20 +298,20 @@ class Drawing:
             
             # Verifica se o Estilo de Cota está no PorCamada
             if dim_style.dxf.dimclrd != 256 or dim_style.dxf.dimclre != 256:
-                self.error_drawing.ed21['boolean_value'] = True
-                self.error_drawing.ed21['description'] += f'\t\t\t{dim_name}\n'
+                self.error_drawing.er21['boolean_value'] = True
+                self.error_drawing.er21['description'] += f'\t\t\t{dim_name}\n'
 
             # Verifica se a Escala da Cota está no padrão do formato
             if  abs(self.subtitle_block['x_scale'] - dim_style.dxf.dimscale) > 0.0001:
-                self.error_drawing.ed22['boolean_value'] = True
-                self.error_drawing.ed22['description'] += f'\t\t\t{dim_name}\n'
+                self.error_drawing.er22['boolean_value'] = True
+                self.error_drawing.er22['description'] += f'\t\t\t{dim_name}\n'
 
             # Verifica o fator de Escada da Cota está correto
             scale_factor = round(dim_style.dxf.dimlfac * self.subtitle_block['x_scale'], 1)
             scale_factor = re.sub(r'\b(\d+)\.0\b', r'\1', str(scale_factor))
             if scale_factor not in dim_style.dxf.name:
-                self.error_drawing.ed23['boolean_value'] = True
-                self.error_drawing.ed23['description'] += f'\t\t\t{dim_name}\n'
+                self.error_drawing.er23['boolean_value'] = True
+                self.error_drawing.er23['description'] += f'\t\t\t{dim_name}\n'
 
     def check_format_block_at_origin(self):
         if (
@@ -319,7 +319,7 @@ class Drawing:
             self.format_block['y_position'],
             self.format_block['z_position'],
         ) != (0, 0, 0): 
-            self.error_drawing.ed24['boolean_value'] = True
+            self.error_drawing.er24['boolean_value'] = True
 
     def check_dimension_step(self):
         pattern = re.compile(
@@ -345,7 +345,7 @@ class Drawing:
             tolerance = 1.15
 
             if abs(result - measured) > tolerance:
-                self.error_drawing.ed25['boolean_value'] = True
+                self.error_drawing.er25['boolean_value'] = True
                 return
     
     # Função para verificar escala dos blocos
@@ -390,13 +390,13 @@ class Drawing:
             blocks_checked.add(block_name)
 
             if error == BlockScaleError.MIRRORED:
-                self._concat_block_error(self.error_drawing.ed26, block.name, block.description, "Bloco espelhado")
+                self._concat_block_error(self.error_drawing.er26, block.name, block.description, "Bloco espelhado")
 
             if error == BlockScaleError.SCALED:
-                self._concat_block_error(self.error_drawing.ed26, block.name, block.description, "Escala incorreta")
+                self._concat_block_error(self.error_drawing.er26, block.name, block.description, "Escala incorreta")
 
             if error == BlockScaleError.ROTATED:
-                self._concat_block_error(self.error_drawing.ed26, block.name, block.description, "Rotação incorreta")
+                self._concat_block_error(self.error_drawing.er26, block.name, block.description, "Rotação incorreta")
 
     # Função para verificar se um bloco existe no Desenho
     # def _checkBlockExists(self, blockName):
@@ -446,5 +446,5 @@ class Drawing:
         for layer in self.doc_dxf.layers:
             layer_name = layer.dxf.name
             if layer_name in old_layers:
-                self.error_drawing.ed07['boolean_value'] = True
-                self.error_drawing.ed07['description'] += f'\t\t\t{layer_name}\n'
+                self.error_drawing.er07['boolean_value'] = True
+                self.error_drawing.er07['description'] += f'\t\t\t{layer_name}\n'
