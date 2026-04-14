@@ -43,7 +43,7 @@ class Drawing:
         # self.check_format_block_at_origin()
         # self.check_dimension_step()
         # # # self.check_version_blocks()
-        # self.check_older_layers()
+        self.check_older_layers()
         # self.check_blocks_scale()
 
         self.message = self.error_drawing.get_error_messages()

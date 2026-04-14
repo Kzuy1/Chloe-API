@@ -9,5 +9,16 @@ old_layers = [
     "OCULTA",
     "SIMETRIA",
     "TEXTO",
-    "Ns_srafa_13"
+
+    "CONTOUR EXI",
+    "LANG-FR",
+    "LANG-IN-R1",
+    "LANG-IN-R2",
+    "LANG-IT",
+    "LANG-SP",
+    "Ns_srafa_13",
+    "REDECAM_Blocco_Bulloneria",
+    "REDECAM_Blocco_Distinta",
+    "REDECAM_Bocco_Guarnizioni",
+    "REDECAM_Squadratura_Cartiglio",
 ]
