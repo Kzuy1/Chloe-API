@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, send_file, make_response, after_this_
 from waitress import serve
 from Excel_To_DXF.ListToDxf import ListToDxf
 from Verify_Drawing.Drawing import Drawing
+from Verify_Drawing_Redecam.Drawing import Drawing as DrawingRedecam
 from Importa_Part_Attributes_Excel_To_DXF.importAttributesToDxf import import_attributes_from_xlsx
 from utils.file_utils import clear_temp
 import os
@@ -37,11 +38,18 @@ def upload_file():
 def routeVerifyDrawing():
     file = request.files['file']
     data_issue = request.form['data']
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    temp_dir = os.path.join(base_dir, 'Verify_Drawing', 'temp')
+    verification_type = request.form['verification_type']
 
     if file:
-        verify_drawing = Drawing(file, data_issue)
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        temp_dir = os.path.join(base_dir, 'Verify_Drawing', 'temp')
+
+        verify_drawing = None
+        if verification_type == 'redecam':
+            temp_dir = os.path.join(base_dir, 'Verify_Drawing_Redecam', 'temp')
+            verify_drawing = DrawingRedecam(file, data_issue)
+        else:
+            verify_drawing = Drawing(file, data_issue)
         result = verify_drawing.message
 
 
@@ -89,7 +97,7 @@ loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 loop.set_exception_handler(unhandled_rejection_handler)
 
-# # Opção para testes
+# Opção para testes
 # if __name__ == '__main__':
 #     app.run(host='0.0.0.0', port=3000, debug=True)
 
