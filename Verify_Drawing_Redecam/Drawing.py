@@ -40,7 +40,7 @@ class Drawing:
         self.check_line_scale_factor()
         self.check_leader()
         # self.check_dimensions_indicate()
-        # self.check_format_block_at_origin()
+        self.check_format_block_at_origin()
         # self.check_dimension_step()
         # # # self.check_version_blocks()
         self.check_older_layers()
