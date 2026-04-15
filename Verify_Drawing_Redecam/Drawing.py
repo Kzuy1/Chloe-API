@@ -22,8 +22,8 @@ class Drawing:
         self.doc_dxf = ezdxf.readfile(self.full_path)
         self.msp_dxf = self.doc_dxf.modelspace()
         self.subtitle_block = self.get_block_info('REDECAM_TITLE-BLOCK')
-        # self.revision_blocks = self.get_block_info('SATUS_REVISAO')
-        # self.revision_blocks = self.sort_block(self.revision_blocks, 'REV-N')
+        self.revision_blocks = self.get_block_info('REDE-DISTINTA-REVISIONE')
+        self.revision_blocks = self.sort_block(self.revision_blocks, 'REV-N')
         # self.part_blocks = self.get_block_info('SATUS_LISTA-PECAS')
         self.format_block = self.get_block_info('REDE-A0', 'REDECAM_A1','REDECAM_A3')
         
@@ -35,12 +35,12 @@ class Drawing:
         self.check_data_issue()
         self.check_correct_separation()
         self.check_subtitle_block()
-        # self.check_revision_block()
+        self.check_revision_block()
         # self.check_part_block()
-        # self.check_line_scale_factor()
-        # self.check_leader()
+        self.check_line_scale_factor()
+        self.check_leader()
         # self.check_dimensions_indicate()
-        # self.check_format_block_at_origin()
+        self.check_format_block_at_origin()
         # self.check_dimension_step()
         # # # self.check_version_blocks()
         self.check_older_layers()
@@ -169,25 +169,21 @@ class Drawing:
         if not self.error_drawing.er01['boolean_value']:
             if self.subtitle_block['FROM-DWG']['value'] + '_' + self.subtitle_block['REV']['value'] != self.file_drawing_code:
                 self.error_drawing.er02['boolean_value'] = True
-                print('1')
             
             if self.subtitle_block['COMBOFIELD1']['value'] + '_' + self.subtitle_block['DOC']['value'] + '-' + self.subtitle_block['NUM']['value'] != self.subtitle_block['FROM-DWG']['value']:
                 self.error_drawing.er02['boolean_value'] = True
-                print('2')
 
             join_combofield = self.subtitle_block['PRN']['value'] + self.subtitle_block['LIN']['value']
             if self.subtitle_block['ITESIN']['value']:
                 join_combofield += '-' + self.subtitle_block['ITESIN']['value']
             if join_combofield != self.subtitle_block['COMBOFIELD1']['value']:
                 self.error_drawing.er02['boolean_value'] = True
-                print('3')
 
             join_itemsin = self.subtitle_block['ITE']['value']
             if self.subtitle_block['SIN']['value']:
                 join_itemsin += '-' + self.subtitle_block['SIN']['value']
             if join_itemsin != self.subtitle_block['ITESIN']['value']:
                 self.error_drawing.er02['boolean_value'] = True
-                print('4')
 
         # Verifica se a escala condiz com o que está escrito
         scale_subtitle = self.subtitle_block['SCA']['value']
@@ -208,31 +204,35 @@ class Drawing:
                 self.error_drawing.er12['boolean_value'] = True
                 return
 
-        # Verifica se a data Bloco de Revisão 0 é o mesmo no Bloco de Legenda
-        if self.revision_blocks[0]['REV-D']['value'] != self.subtitle_block['DATA']['value']:
+        # Verifica se a data Bloco de Revisão 0 é o mesmo no Bloco de Legenda da Data de Emissão
+        if self.revision_blocks[0]['REV-D']['value'] != self.subtitle_block['DAT']['value']:
             self.error_drawing.er10['boolean_value'] = True
+
+        # Verifica se a data Bloco de Revisão N é o mesmo no Bloco de Legenda da Data de Revisão
+        if self.revision_blocks[int(self.file_drawing_code_separate[-1])]['REV-D']['value'] != self.subtitle_block['D-REV']['value']:
+            self.error_drawing.er11['boolean_value'] = True
         
         # Verifica se a data da revisão atual do desenho condiz com a Date de Emissão do Usuário, Padrão: Data de Hoje
         if self.revision_blocks[int(self.file_drawing_code_separate[-1])]['REV-D']['value'] != self.data_issue:
             self.error_drawing.er13['boolean_value'] = True
             self.error_drawing.er13['description'] += self.data_issue
 
-        # Verificar a revisão de pares a mesma pessoa está atribuída a mais de um papel na Revisão de Pares
-        revision_responsibles = []
-        revision_responsibles.append(self.revision_blocks[int(self.file_drawing_code_separate[-1])]['DES.']['value'].strip().upper())
-        revision_responsibles.append(self.revision_blocks[int(self.file_drawing_code_separate[-1])]['VERIF.']['value'].strip().upper())
-        revision_responsibles.append(self.revision_blocks[int(self.file_drawing_code_separate[-1])]['APROV.']['value'].strip().upper())
+        # # Verificar a revisão de pares a mesma pessoa está atribuída a mais de um papel na Revisão de Pares
+        # revision_responsibles = []
+        # revision_responsibles.append(self.revision_blocks[int(self.file_drawing_code_separate[-1])]['DES.']['value'].strip().upper())
+        # revision_responsibles.append(self.revision_blocks[int(self.file_drawing_code_separate[-1])]['VERIF.']['value'].strip().upper())
+        # revision_responsibles.append(self.revision_blocks[int(self.file_drawing_code_separate[-1])]['APROV.']['value'].strip().upper())
         
-        if len(revision_responsibles) != len(set(revision_responsibles)):
-            self.error_drawing.er04['boolean_value'] = True
+        # if len(revision_responsibles) != len(set(revision_responsibles)):
+        #     self.error_drawing.er04['boolean_value'] = True
 
-        # Verificar se revisão de pares do Bloco 0 está igual ao Bloco de Título
-        if any([
-            self.revision_blocks[0]['DES.']['value'] != self.subtitle_block['DES.']['value'],
-            self.revision_blocks[0]['VERIF.']['value'] != self.subtitle_block['VERIF.']['value'],
-            self.revision_blocks[0]['APROV.']['value'] != self.subtitle_block['APROV.']['value']
-        ]):
-            self.error_drawing.er05['boolean_value'] = True
+        # # Verificar se revisão de pares do Bloco 0 está igual ao Bloco de Título
+        # if any([
+        #     self.revision_blocks[0]['DES.']['value'] != self.subtitle_block['DES.']['value'],
+        #     self.revision_blocks[0]['VERIF.']['value'] != self.subtitle_block['VERIF.']['value'],
+        #     self.revision_blocks[0]['APROV.']['value'] != self.subtitle_block['APROV.']['value']
+        # ]):
+        #     self.error_drawing.er05['boolean_value'] = True
 
     # Função para verficar Blocos de Peças
     def check_part_block(self):
@@ -282,7 +282,7 @@ class Drawing:
     # Função para verificar as linhas de chamadas
     def check_leader(self):
         for leader in self.msp_dxf.query('LEADER'):
-            if leader.dxf.layer != 'COTAS':
+            if leader.dxf.layer != 'QUOTE':
                 self.error_drawing.er08['boolean_value'] = True
                 return
     
