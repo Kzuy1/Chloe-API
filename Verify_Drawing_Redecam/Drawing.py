@@ -38,7 +38,7 @@ class Drawing:
         # self.check_revision_block()
         # self.check_part_block()
         self.check_line_scale_factor()
-        # self.check_leader()
+        self.check_leader()
         # self.check_dimensions_indicate()
         # self.check_format_block_at_origin()
         # self.check_dimension_step()
@@ -282,7 +282,7 @@ class Drawing:
     # Função para verificar as linhas de chamadas
     def check_leader(self):
         for leader in self.msp_dxf.query('LEADER'):
-            if leader.dxf.layer != 'COTAS':
+            if leader.dxf.layer != 'QUOTE':
                 self.error_drawing.er08['boolean_value'] = True
                 return
     
