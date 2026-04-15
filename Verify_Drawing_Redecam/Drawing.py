@@ -37,7 +37,7 @@ class Drawing:
         self.check_subtitle_block()
         # self.check_revision_block()
         # self.check_part_block()
-        # self.check_line_scale_factor()
+        self.check_line_scale_factor()
         # self.check_leader()
         # self.check_dimensions_indicate()
         # self.check_format_block_at_origin()
