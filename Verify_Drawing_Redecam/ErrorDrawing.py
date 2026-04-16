@@ -22,7 +22,7 @@ class ErrorDrawing:
         # self.er22 = {'description': ':lady_beetle: Error 22: Cota com escala global incorreta:\n','boolean_value': False }
         # self.er23 = {'description': ':lady_beetle: Error 23: Fator de Escala ou Nome da cota incorreta:\n','boolean_value': False }
         self.er24 = {'description': ':lady_beetle: Error 24: Bloco de Formato não está na origem (0,0,0).','boolean_value': False }
-        # self.er25 = {'description': ':lady_beetle: Error 25: Cota com Passo x Quantidade divergente da Dimensão.','boolean_value': False }
+        self.er25 = {'description': ':lady_beetle: Error 25: Cota com Passo x Quantidade divergente da Dimensão.','boolean_value': False }
         # self.er26 = {'description': ':lady_beetle: Error 26: Lista de Blocos na escala errada:\n','boolean_value': False }
         # self.erOB = {'description': ':lady_beetle: Error 27: Lista de Blocos na versão antiga:\n','boolean_value': False }
 

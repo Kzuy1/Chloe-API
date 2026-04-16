@@ -3,6 +3,7 @@ from Verify_Drawing_Redecam.Layer import LayerList
 from Verify_Drawing_Redecam.Blocks import BlockList, Entity, BlockScaleError
 from Verify_Drawing_Redecam.OldLayers import old_layers
 from utils.file_utils import save_in_temp_folder, convert_file
+from ezdxf.entities.dimstyleoverride import DimStyleOverride
 from datetime import datetime
 import ezdxf
 import os
@@ -41,7 +42,7 @@ class Drawing:
         self.check_leader()
         # self.check_dimensions_indicate()
         self.check_format_block_at_origin()
-        # self.check_dimension_step()
+        self.check_dimension_step()
         # # # self.check_version_blocks()
         self.check_older_layers()
         # self.check_blocks_scale()
@@ -320,19 +321,28 @@ class Drawing:
         ) != (0, 0, 0): 
             self.error_drawing.er24['boolean_value'] = True
 
+    def _get_dimension_suffix(self, dim):
+        if dim.dxf.text:
+            return dim.dxf.text
+        
+        override = DimStyleOverride(dim)
+        dimpost = override.get('dimpost')
+        if dimpost:
+            return dimpost
+
     def check_dimension_step(self):
         pattern = re.compile(
-            r'\<\>\(\s*([\d.,]+)\s*x\s*([\d.,]+)\s*\)',
+            r'\(\s*([\d.,]+)\s*[xX]\s*([\d.,]+)\s*\)',
             re.IGNORECASE
         )
 
         for dim in self.msp_dxf.query("DIMENSION"):
-            dim_text = dim.dxf.text
-
+            dim_text = self._get_dimension_suffix(dim)
+        
             if not dim_text:
                 continue
-
             match = pattern.search(dim_text)
+
             if not match:
                 continue
 
