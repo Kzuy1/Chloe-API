@@ -323,7 +323,7 @@ class Drawing:
 
     def check_dimension_step(self):
         pattern = re.compile(
-            r'\<\>\(\s*([\d.,]+)\s*x\s*([\d.,]+)\s*\)',
+             r'\(\s*([\d.,]+)\s*[xX]\s*([\d.,]+)\s*\)',
             re.IGNORECASE
         )
 
