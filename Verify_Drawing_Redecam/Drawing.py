@@ -218,22 +218,21 @@ class Drawing:
             self.error_drawing.er13['boolean_value'] = True
             self.error_drawing.er13['description'] += self.data_issue
 
-        # # Verificar a revisão de pares a mesma pessoa está atribuída a mais de um papel na Revisão de Pares
-        # revision_responsibles = []
-        # revision_responsibles.append(self.revision_blocks[int(self.file_drawing_code_separate[-1])]['DES.']['value'].strip().upper())
-        # revision_responsibles.append(self.revision_blocks[int(self.file_drawing_code_separate[-1])]['VERIF.']['value'].strip().upper())
-        # revision_responsibles.append(self.revision_blocks[int(self.file_drawing_code_separate[-1])]['APROV.']['value'].strip().upper())
-        
-        # if len(revision_responsibles) != len(set(revision_responsibles)):
-        #     self.error_drawing.er04['boolean_value'] = True
+        # Verificar a revisão de pares está atribuída em 'EMB' e 'VOL'
+        if self.revision_blocks[int(self.file_drawing_code_separate[-1])]['MOD']['value'].strip().upper() != 'EMB' or \
+           self.revision_blocks[int(self.file_drawing_code_separate[-1])]['APP']['value'].strip().upper() != 'VOL':
+            self.error_drawing.er04['boolean_value'] = True
 
-        # # Verificar se revisão de pares do Bloco 0 está igual ao Bloco de Título
-        # if any([
-        #     self.revision_blocks[0]['DES.']['value'] != self.subtitle_block['DES.']['value'],
-        #     self.revision_blocks[0]['VERIF.']['value'] != self.subtitle_block['VERIF.']['value'],
-        #     self.revision_blocks[0]['APROV.']['value'] != self.subtitle_block['APROV.']['value']
-        # ]):
-        #     self.error_drawing.er05['boolean_value'] = True
+        # Verificar se revisão de pares do Bloco 0 está igual ao Bloco de Título
+        if any([
+            self.revision_blocks[0]['MOD']['value'] != self.subtitle_block['DRA']['value'],
+            self.revision_blocks[0]['APP']['value'] != self.subtitle_block['CON']['value'],
+        ]):
+            self.error_drawing.er05['boolean_value'] = True
+        
+        # Verifica se o Aprovado do Bloco de Legenda está em branco
+        if self.subtitle_block['APP']['value'] != '':
+            self.error_drawing.er17['boolean_value'] = True
 
     # Função para verficar Blocos de Peças
     def check_part_block(self):
