@@ -25,7 +25,7 @@ class Drawing:
         self.subtitle_block = self.get_block_info('REDECAM_TITLE-BLOCK')
         self.revision_blocks = self.get_block_info('REDE-DISTINTA-REVISIONE')
         self.revision_blocks = self.sort_block(self.revision_blocks, 'REV-N')
-        # self.part_blocks = self.get_block_info('SATUS_LISTA-PECAS')
+        self.part_blocks = self.get_block_info('REDECAM_STEELWORK')
         self.format_block = self.get_block_info('REDE-A0', 'REDECAM_A1','REDECAM_A3')
         
         if self.has_multiple_blocks():
@@ -37,10 +37,10 @@ class Drawing:
         self.check_correct_separation()
         self.check_subtitle_block()
         self.check_revision_block()
-        # self.check_part_block()
+        self.check_part_block()
         self.check_line_scale_factor()
         self.check_leader()
-        # self.check_dimensions_indicate()
+        self.check_dimensions_indicate()
         self.check_format_block_at_origin()
         self.check_dimension_step()
         # # # self.check_version_blocks()
@@ -218,22 +218,21 @@ class Drawing:
             self.error_drawing.er13['boolean_value'] = True
             self.error_drawing.er13['description'] += self.data_issue
 
-        # # Verificar a revisão de pares a mesma pessoa está atribuída a mais de um papel na Revisão de Pares
-        # revision_responsibles = []
-        # revision_responsibles.append(self.revision_blocks[int(self.file_drawing_code_separate[-1])]['DES.']['value'].strip().upper())
-        # revision_responsibles.append(self.revision_blocks[int(self.file_drawing_code_separate[-1])]['VERIF.']['value'].strip().upper())
-        # revision_responsibles.append(self.revision_blocks[int(self.file_drawing_code_separate[-1])]['APROV.']['value'].strip().upper())
-        
-        # if len(revision_responsibles) != len(set(revision_responsibles)):
-        #     self.error_drawing.er04['boolean_value'] = True
+        # Verificar a revisão de pares está atribuída em 'EMB' e 'VOL'
+        if self.revision_blocks[int(self.file_drawing_code_separate[-1])]['MOD']['value'].strip().upper() != 'EMB' or \
+           self.revision_blocks[int(self.file_drawing_code_separate[-1])]['APP']['value'].strip().upper() != 'VOL':
+            self.error_drawing.er04['boolean_value'] = True
 
-        # # Verificar se revisão de pares do Bloco 0 está igual ao Bloco de Título
-        # if any([
-        #     self.revision_blocks[0]['DES.']['value'] != self.subtitle_block['DES.']['value'],
-        #     self.revision_blocks[0]['VERIF.']['value'] != self.subtitle_block['VERIF.']['value'],
-        #     self.revision_blocks[0]['APROV.']['value'] != self.subtitle_block['APROV.']['value']
-        # ]):
-        #     self.error_drawing.er05['boolean_value'] = True
+        # Verificar se revisão de pares do Bloco 0 está igual ao Bloco de Título
+        if any([
+            self.revision_blocks[0]['MOD']['value'] != self.subtitle_block['DRA']['value'],
+            self.revision_blocks[0]['APP']['value'] != self.subtitle_block['CON']['value'],
+        ]):
+            self.error_drawing.er05['boolean_value'] = True
+        
+        # Verifica se o Aprovado do Bloco de Legenda está em branco
+        if self.subtitle_block['APP']['value'] != '':
+            self.error_drawing.er17['boolean_value'] = True
 
     # Função para verficar Blocos de Peças
     def check_part_block(self):
@@ -241,37 +240,39 @@ class Drawing:
         sum_weight_withou_rock = 0
 
         for part_block in self.part_blocks:
-            # Verifica se o Peso está com Ponto
-            if '.' in part_block["PESO_UNIT."]['value'] or '.' in part_block["PESO_TOTAL"]['value']:
+            # Verifica se o Peso está com Vírgula
+            if ',' in part_block["QTY"]['value'] or \
+                ',' in part_block["WEIGHT"]['value'] or \
+                ',' in part_block["TOTAL"]['value']:
                 self.error_drawing.er15['boolean_value'] = True
 
             # Verifica se a multiplicação do peso bate
-            part_qty = float(part_block["QTDE."]['value'])
-            part_weight = float(part_block["PESO_UNIT."]['value'].replace(',', '.'))
-            part_total_weight = float(part_block["PESO_TOTAL"]['value'].replace(',', '.'))
+            part_qty = float(part_block["QTY"]['value'])
+            part_weight = float(part_block["WEIGHT"]['value'])
+            part_total_weight = float(part_block["TOTAL"]['value'])
             
             if abs(part_qty * part_weight - part_total_weight) > 0.0001:
                 self.error_drawing.er16['boolean_value'] = True
 
-            # Realiza soma do peso total e soma do peso somente das peças de aço.
-            sum_weight += part_total_weight
-            if not any(keyword in part_block['DESCRICAO']['value'] for keyword in ['ROCHA', 'ROCK']):
-                sum_weight_withou_rock += part_total_weight
+        #     # Realiza soma do peso total e soma do peso somente das peças de aço.
+        #     sum_weight += part_total_weight
+        #     if not any(keyword in part_block['DESCRICAO']['value'] for keyword in ['ROCHA', 'ROCK']):
+        #         sum_weight_withou_rock += part_total_weight
 
-        # Verifica se a nota de Peso Total Aprox. está próxima da soma dos pesos dos blocos brancos
-        for entity in self.msp_dxf:
-            if entity.dxftype() == 'TEXT' and entity.dxf.layer == 'TEXTO' and 'kg' in entity.dxf.text and entity.dxf.color == 2:
-                compare_weight = sum_weight
+        # # Verifica se a nota de Peso Total Aprox. está próxima da soma dos pesos dos blocos brancos
+        # for entity in self.msp_dxf:
+        #     if entity.dxftype() == 'TEXT' and entity.dxf.layer == 'TEXTO' and 'kg' in entity.dxf.text and entity.dxf.color == 2:
+        #         compare_weight = sum_weight
 
-                if any(keyword in entity.dxf.text for keyword in ['STEELWORK', 'AÇO']):
-                    compare_weight = sum_weight_withou_rock
+        #         if any(keyword in entity.dxf.text for keyword in ['STEELWORK', 'AÇO']):
+        #             compare_weight = sum_weight_withou_rock
 
-                total_weight_approx = re.sub(r'\D', '', entity.dxf.text)
+        #         total_weight_approx = re.sub(r'\D', '', entity.dxf.text)
 
-                if abs(round(compare_weight) - float(total_weight_approx)) > 0.1:
-                    self.error_drawing.er20['boolean_value'] = True
-                    self.error_drawing.er20['description'] += f"{round(compare_weight)} kg"
-                    break
+        #         if abs(round(compare_weight) - float(total_weight_approx)) > 0.1:
+        #             self.error_drawing.er20['boolean_value'] = True
+        #             self.error_drawing.er20['description'] += f"{round(compare_weight)} kg"
+        #             break
 
     # Função para verificar o LTScale
     def check_line_scale_factor(self):
