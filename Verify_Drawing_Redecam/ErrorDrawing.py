@@ -19,9 +19,9 @@ class ErrorDrawing:
         self.er17 = {'description': ':lady_beetle: Error 17: Bloco de Legenda deve estar aprovado em branco.','boolean_value': False }
         # self.er18 = {'description': ':lady_beetle: Error 18: Nota com Código de Identificação das peças diferente do Código do Desenho.','boolean_value': False }
         # self.er20 = {'description': ':lady_beetle: Error 20: Nota com Peso Aproximado está diferente da Soma dos Blocos de Peça, correto: ','boolean_value': False }
-        # self.er21 = {'description': ':lady_beetle: Error 21: Cota com linha fora do Por Camada:\n','boolean_value': False }
-        # self.er22 = {'description': ':lady_beetle: Error 22: Cota com escala global incorreta:\n','boolean_value': False }
-        # self.er23 = {'description': ':lady_beetle: Error 23: Fator de Escala ou Nome da cota incorreta:\n','boolean_value': False }
+        self.er21 = {'description': ':lady_beetle: Error 21: Cota com linha fora do Por Camada:\n','boolean_value': False }
+        self.er22 = {'description': ':lady_beetle: Error 22: Cota com escala global incorreta:\n','boolean_value': False }
+        self.er23 = {'description': ':lady_beetle: Error 23: Fator de Escala ou Nome da cota incorreta:\n','boolean_value': False }
         self.er24 = {'description': ':lady_beetle: Error 24: Bloco de Formato não está na origem (0,0,0).','boolean_value': False }
         self.er25 = {'description': ':lady_beetle: Error 25: Cota com Passo x Quantidade divergente da Dimensão.','boolean_value': False }
         # self.er26 = {'description': ':lady_beetle: Error 26: Lista de Blocos na escala errada:\n','boolean_value': False }
