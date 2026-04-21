@@ -17,7 +17,8 @@ class ErrorDrawing:
         self.er15 = {'description': ':lady_beetle: Error 15: Peso no Bloco de Peça com vírgula.','boolean_value': False }
         self.er16 = {'description': ':lady_beetle: Error 16: Bloco de Peça com peso não batendo a multiplicação.','boolean_value': False }
         self.er17 = {'description': ':lady_beetle: Error 17: Bloco de Legenda deve estar aprovado em branco.','boolean_value': False }
-        # self.er18 = {'description': ':lady_beetle: Error 18: Nota com Código de Identificação das peças diferente do Código do Desenho.','boolean_value': False }
+        self.er18 = {'description': ':lady_beetle: Error 18: Nota com Código de Identificação das peças diferente do Código do Desenho.','boolean_value': False }
+        self.er19 = {'description': ':lady_beetle: Error 19: Bloco de Peça com código incorreto.','boolean_value': False }
         # self.er20 = {'description': ':lady_beetle: Error 20: Nota com Peso Aproximado está diferente da Soma dos Blocos de Peça, correto: ','boolean_value': False }
         self.er21 = {'description': ':lady_beetle: Error 21: Cota com linha fora do Por Camada:\n','boolean_value': False }
         self.er22 = {'description': ':lady_beetle: Error 22: Cota com escala global incorreta:\n','boolean_value': False }

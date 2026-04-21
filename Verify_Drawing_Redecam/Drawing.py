@@ -40,6 +40,7 @@ class Drawing:
         self.check_part_block()
         self.check_line_scale_factor()
         self.check_leader()
+        self.check_mark()
         self.check_dimensions_indicate()
         self.check_format_block_at_origin()
         self.check_dimension_step()
@@ -234,6 +235,18 @@ class Drawing:
         if self.subtitle_block['APP']['value'] != '':
             self.error_drawing.er17['boolean_value'] = True
 
+    # Função para verificar códigos das notas de marcação
+    def check_mark(self):
+        expected_code_part = self.subtitle_block['COMBOFIELD1']['value'] + "-SR" + self.subtitle_block['NUM']['value'] + '.'
+        
+        for entity in self.msp_dxf:
+            if entity.dxftype() != 'TEXT' or entity.dxf.layer != 'CONTORNI' or '-SR' not in entity.dxf.text:
+                continue
+
+            if not entity.dxf.text.startswith(expected_code_part):
+                self.error_drawing.er18['boolean_value'] = True
+                return
+
     # Função para verficar Blocos de Peças
     def check_part_block(self):
         sum_weight = 0
@@ -253,6 +266,11 @@ class Drawing:
             
             if abs(part_qty * part_weight - part_total_weight) > 0.0001:
                 self.error_drawing.er16['boolean_value'] = True
+
+            # Verifica se código da peça está correto
+            expected_code_part = self.subtitle_block['COMBOFIELD1']['value'] + "-SR"
+            if not part_block["CODE"]['value'].startswith(expected_code_part):
+                self.error_drawing.er19['boolean_value'] = True
 
         #     # Realiza soma do peso total e soma do peso somente das peças de aço.
         #     sum_weight += part_total_weight
