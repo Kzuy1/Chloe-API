@@ -45,6 +45,7 @@ class Drawing:
         self.check_format_block_at_origin()
         self.check_dimension_step()
         self.check_version_blocks_by_name()
+        self.check_version_blocks_by_entity()
         self.check_older_layers()
         # self.check_blocks_scale()
 
@@ -445,36 +446,30 @@ class Drawing:
             if self._check_block_exists(block.name):
                 self._concat_block_error(self.error_drawing.er27, block.name, block.description, "Bloco antigo")
 
-    # def inspect_block(self, block_name: str, expected: Entity) -> bool:
-    #     block = self.doc_dxf.blocks.get(block_name)
-    #     if block is None:
-    #         return False
+    def inspect_block(self, block_name: str, expected: Entity) -> bool:
+        block = self.doc_dxf.blocks.get(block_name)
+        if block is None:
+            return False
 
-    #     for entity in block:
-    #         if entity.dxftype() == expected.dxftype:
-    #             if expected.layer is not None and entity.dxf.layer != expected.layer:
-    #                 continue
-    #             if expected.color is not None and entity.dxf.color != expected.color:
-    #                 continue
-    #             return True
+        for entity in block:
+            if entity.dxftype() != expected.dxftype:
+                continue
+            if expected.layer is not None and entity.dxf.layer != expected.layer:
+                continue
+            if expected.color is not None and entity.dxf.color != expected.color:
+                continue
+            return True
 
-    #     return False
+        return False
         
     # Função para verificar as versões dos blocos
-    # def check_version_blocks(self):
+    def check_version_blocks_by_entity(self):
+        blocks_to_check_by_entity = BlockList()
+        blocks_to_check_by_entity.add_list_old_blocks_check_by_entity()
 
-    #     blocks_to_check_by_entity = BlockList()
-    #     blocks_to_check_by_entity.add_list_old_blocks_check_by_entity()
-
-    #     # for block in blocks_to_check:
-    #     #     if self._checkBlockExists(block[0]):
-    #     #         self._concat_blockname_error(block[0], block[1])
-
-    #     for block in blocks_to_check_by_entity.blocks:
-    #         if not self.inspect_block(block.name, block.entity):
-    #             print(block.name)
-    #             self._concat_blockname_error(block.name, block.description)
-
+        for block in blocks_to_check_by_entity.blocks:
+            if not self.inspect_block(block.name, block.entity):
+                self._concat_block_error(self.error_drawing.er27, block.name, block.description, "Bloco antigo")
 
     # Função para verificar Layer antigas
     def check_older_layers(self):

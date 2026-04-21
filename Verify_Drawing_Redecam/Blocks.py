@@ -61,8 +61,9 @@ class BlockList:
         self.add_block('EMB_LISTA_DE_MATERIAL_INFO_v0.2', 'Bloco de Material das Informações')
         self.add_block('EMB_LISTA_DE_MATERIAL_DESCRITIVO_v0.2', 'Bloco de Material das Descrições')
 
-    # def add_list_old_blocks_check_by_entity(self):
-
+    def add_list_old_blocks_check_by_entity(self):
+        self.add_block(name='REDECAM_TITLE-BLOCK', description='Bloco de Título', entity=Entity(dxftype='INSERT', layer='REDECAM_TITLE-BLOCK'))
+        
     # def add_list_blocks_check_scale(self):
         # self.add_block(name='', description='', allowed_scales=[1.0], allow_mirrored=False)
 
