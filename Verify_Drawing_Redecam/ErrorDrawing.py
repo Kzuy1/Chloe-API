@@ -17,7 +17,8 @@ class ErrorDrawing:
         self.er15 = {'description': ':lady_beetle: Error 15: Peso no Bloco de Peça com vírgula.','boolean_value': False }
         self.er16 = {'description': ':lady_beetle: Error 16: Bloco de Peça com peso não batendo a multiplicação.','boolean_value': False }
         self.er17 = {'description': ':lady_beetle: Error 17: Bloco de Legenda deve estar aprovado em branco.','boolean_value': False }
-        # self.er18 = {'description': ':lady_beetle: Error 18: Nota com Código de Identificação das peças diferente do Código do Desenho.','boolean_value': False }
+        self.er18 = {'description': ':lady_beetle: Error 18: Nota com Código de Identificação das peças diferente do Código do Desenho.','boolean_value': False }
+        self.er19 = {'description': ':lady_beetle: Error 19: Bloco de Peça com código incorreto.','boolean_value': False }
         # self.er20 = {'description': ':lady_beetle: Error 20: Nota com Peso Aproximado está diferente da Soma dos Blocos de Peça, correto: ','boolean_value': False }
         self.er21 = {'description': ':lady_beetle: Error 21: Cota com linha fora do Por Camada:\n','boolean_value': False }
         self.er22 = {'description': ':lady_beetle: Error 22: Cota com escala global incorreta:\n','boolean_value': False }
@@ -25,7 +26,7 @@ class ErrorDrawing:
         self.er24 = {'description': ':lady_beetle: Error 24: Bloco de Formato não está na origem (0,0,0).','boolean_value': False }
         self.er25 = {'description': ':lady_beetle: Error 25: Cota com Passo x Quantidade divergente da Dimensão.','boolean_value': False }
         # self.er26 = {'description': ':lady_beetle: Error 26: Lista de Blocos na escala errada:\n','boolean_value': False }
-        # self.erOB = {'description': ':lady_beetle: Error 27: Lista de Blocos na versão antiga:\n','boolean_value': False }
+        self.er27 = {'description': ':lady_beetle: Error 27: Lista de Blocos na versão antiga:\n','boolean_value': False }
 
     # self.erXX = {'description': ':lady_beetle: Error XX: XXXXXXXXX','boolean_value': False }
         

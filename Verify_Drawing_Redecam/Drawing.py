@@ -26,7 +26,7 @@ class Drawing:
         self.revision_blocks = self.get_block_info('REDE-DISTINTA-REVISIONE')
         self.revision_blocks = self.sort_block(self.revision_blocks, 'REV-N')
         self.part_blocks = self.get_block_info('REDECAM_STEELWORK')
-        self.format_block = self.get_block_info('REDE-A0', 'REDECAM_A1','REDECAM_A3')
+        self.format_block = self.get_block_info('REDE-A0', 'REDECAM_A1', 'REDECAM_A2','REDECAM_A3')
         
         if self.has_multiple_blocks():
             self.message = self.error_drawing.get_error_messages()
@@ -40,10 +40,12 @@ class Drawing:
         self.check_part_block()
         self.check_line_scale_factor()
         self.check_leader()
+        self.check_mark()
         self.check_dimensions_indicate()
         self.check_format_block_at_origin()
         self.check_dimension_step()
-        # # # self.check_version_blocks()
+        self.check_version_blocks_by_name()
+        self.check_version_blocks_by_entity()
         self.check_older_layers()
         # self.check_blocks_scale()
 
@@ -234,6 +236,18 @@ class Drawing:
         if self.subtitle_block['APP']['value'] != '':
             self.error_drawing.er17['boolean_value'] = True
 
+    # Função para verificar códigos das notas de marcação
+    def check_mark(self):
+        expected_code_part = self.subtitle_block['COMBOFIELD1']['value'] + "-SR" + self.subtitle_block['NUM']['value'] + '.'
+        
+        for entity in self.msp_dxf:
+            if entity.dxftype() != 'TEXT' or entity.dxf.layer != 'CONTORNI' or '-SR' not in entity.dxf.text:
+                continue
+
+            if not entity.dxf.text.startswith(expected_code_part):
+                self.error_drawing.er18['boolean_value'] = True
+                return
+
     # Função para verficar Blocos de Peças
     def check_part_block(self):
         sum_weight = 0
@@ -253,6 +267,11 @@ class Drawing:
             
             if abs(part_qty * part_weight - part_total_weight) > 0.0001:
                 self.error_drawing.er16['boolean_value'] = True
+
+            # Verifica se código da peça está correto
+            expected_code_part = self.subtitle_block['COMBOFIELD1']['value'] + "-SR"
+            if not part_block["CODE"]['value'].startswith(expected_code_part):
+                self.error_drawing.er19['boolean_value'] = True
 
         #     # Realiza soma do peso total e soma do peso somente das peças de aço.
         #     sum_weight += part_total_weight
@@ -376,7 +395,7 @@ class Drawing:
         if block.allowed_rotations and not any(math.isclose(rotation, r, abs_tol=tolerance) for r in block.allowed_rotations):
             return BlockScaleError.ROTATED
         
-    # Função para procurar blocos
+   # Função para verificar se um bloco escala, rotação e espelhamento
     def check_blocks_scale(self):
         blocks_to_check = BlockList()
         blocks_checked = set()
@@ -409,47 +428,48 @@ class Drawing:
                 self._concat_block_error(self.error_drawing.er26, block.name, block.description, "Rotação incorreta")
 
     # Função para verificar se um bloco existe no Desenho
-    # def _checkBlockExists(self, blockName):
-    #     block = self.doc_dxf.blocks.get(blockName)
+    def _check_block_exists(self, blockName):
+        block = self.doc_dxf.blocks.get(blockName)
+        return block is not None
 
     # Função adicionar nome do Bloco e Descrição no Error
     def _concat_block_error(self, error: dict, block_name: str, block_description: str, error_description: str):
         error['boolean_value'] = True
         error['description'] += f'\t\t\t{block_name} - {block_description} - {error_description}\n'
-    #     if block is not None:
-    #         return True
     
+    # Função para verificar as versões dos blocos pelo nome
+    def check_version_blocks_by_name(self):
+        blocks_to_check_by_name = BlockList()
+        blocks_to_check_by_name.add_list_old_blocks_check_by_name()
 
-    # def inspect_block(self, block_name: str, expected: Entity) -> bool:
-    #     block = self.doc_dxf.blocks.get(block_name)
-    #     if block is None:
-    #         return False
+        for block in blocks_to_check_by_name.blocks:
+            if self._check_block_exists(block.name):
+                self._concat_block_error(self.error_drawing.er27, block.name, block.description, "Bloco antigo")
 
-    #     for entity in block:
-    #         if entity.dxftype() == expected.dxftype:
-    #             if expected.layer is not None and entity.dxf.layer != expected.layer:
-    #                 continue
-    #             if expected.color is not None and entity.dxf.color != expected.color:
-    #                 continue
-    #             return True
+    def inspect_block(self, block_name: str, expected: Entity) -> bool:
+        block = self.doc_dxf.blocks.get(block_name)
+        if block is None:
+            return False
 
-    #     return False
+        for entity in block:
+            if entity.dxftype() != expected.dxftype:
+                continue
+            if expected.layer is not None and entity.dxf.layer != expected.layer:
+                continue
+            if expected.color is not None and entity.dxf.color != expected.color:
+                continue
+            return True
+
+        return False
         
     # Função para verificar as versões dos blocos
-    # def check_version_blocks(self):
+    def check_version_blocks_by_entity(self):
+        blocks_to_check_by_entity = BlockList()
+        blocks_to_check_by_entity.add_list_old_blocks_check_by_entity()
 
-    #     blocks_to_check_by_entity = BlockList()
-    #     blocks_to_check_by_entity.add_list_old_blocks_check_by_entity()
-
-    #     # for block in blocks_to_check:
-    #     #     if self._checkBlockExists(block[0]):
-    #     #         self._concat_blockname_error(block[0], block[1])
-
-    #     for block in blocks_to_check_by_entity.blocks:
-    #         if not self.inspect_block(block.name, block.entity):
-    #             print(block.name)
-    #             self._concat_blockname_error(block.name, block.description)
-
+        for block in blocks_to_check_by_entity.blocks:
+            if not self.inspect_block(block.name, block.entity):
+                self._concat_block_error(self.error_drawing.er27, block.name, block.description, "Bloco antigo")
 
     # Função para verificar Layer antigas
     def check_older_layers(self):
