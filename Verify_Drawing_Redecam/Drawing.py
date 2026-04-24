@@ -458,6 +458,10 @@ class Drawing:
                 continue
             if expected.color is not None and entity.dxf.color != expected.color:
                 continue
+            if expected.attdef_tag is not None and entity.dxf.tag != expected.attdef_tag:
+                continue
+            if expected.text_value is not None and entity.dxf.text != expected.text_value:
+                continue
             return True
 
         return False
