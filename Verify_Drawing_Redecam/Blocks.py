@@ -2,10 +2,12 @@ from ezdxf.enums import ACI
 from enum import Enum
 
 class Entity:
-    def __init__(self, dxftype, layer = None, color = None):
+    def __init__(self, dxftype, layer = None, color = None, attdef_tag = None, text_value = None):
         self.dxftype = dxftype
         self.layer = layer
         self.color = color
+        self.attdef_tag = attdef_tag
+        self.text_value = text_value
 
 class Block():
     def __init__(self, name: str, description: str, entity: Entity = None, allowed_scales: list[float] = None, allowed_rotations: list[float] = None, allow_mirrored: bool = True):
@@ -62,7 +64,16 @@ class BlockList:
         self.add_block('EMB_LISTA_DE_MATERIAL_DESCRITIVO_v0.2', 'Bloco de Material das Descrições')
 
     def add_list_old_blocks_check_by_entity(self):
+        self.add_block(name='GASKET INSTALLATION', description='Bloco de Instalação de Junta', entity=Entity(dxftype='TEXT', layer='TESTI', text_value='KEEP IT IN POSITION WITH H.T. SILICON'))
+        self.add_block(name='INDEX_STEELWORK', description='Index do Bloco de Peça', entity=Entity(dxftype='TEXT', layer='REDECAM_STEELWORK', text_value='STEELWORK ITEM'))
+        self.add_block(name='MARK', description='Bloco de Indicação de Peça', entity=Entity(dxftype='WIPEOUT', color=250))
+        self.add_block(name='POS', description='Bloco de Indicação de Peça', entity=Entity(dxftype='WIPEOUT', color=250))
+        self.add_block(name='POS2', description='Bloco de Indicação de Peça', entity=Entity(dxftype='WIPEOUT', color=250))
+        self.add_block(name='PRELIMINARY_BIG', description='Bloco de Carimbo Grande', entity=Entity(dxftype='LWPOLYLINE', layer='REDECAM_TITLE-BLOCK'))
+        self.add_block(name='PRELIMINARY_SMALL', description='Bloco de Carimbo Grande', entity=Entity(dxftype='LWPOLYLINE', layer='REDECAM_TITLE-BLOCK'))
         self.add_block(name='REDECAM_TITLE-BLOCK', description='Bloco de Título', entity=Entity(dxftype='INSERT', layer='REDECAM_TITLE-BLOCK'))
+        self.add_block(name='REDECAM_STEELWORK', description='Bloco de Peça', entity=Entity(dxftype='ATTDEF', layer='REDECAM_STEELWORK', attdef_tag='RM'))
+        self.add_block(name='REV', description='Bloco de Indicação de Peça', entity=Entity(dxftype='WIPEOUT', color=250))
         
     # def add_list_blocks_check_scale(self):
         # self.add_block(name='', description='', allowed_scales=[1.0], allow_mirrored=False)
