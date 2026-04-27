@@ -462,6 +462,8 @@ class Drawing:
                 continue
             if expected.text_value is not None and entity.dxf.text != expected.text_value:
                 continue
+            if expected.text_style is not None and entity.dxf.style != expected.text_style:
+                continue
             return True
 
         return False
