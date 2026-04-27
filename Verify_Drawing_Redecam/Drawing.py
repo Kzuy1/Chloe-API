@@ -269,7 +269,7 @@ class Drawing:
                 self.error_drawing.er16['boolean_value'] = True
 
             # Verifica se código da peça está correto
-            expected_code_part = self.subtitle_block['COMBOFIELD1']['value'] + part_block["CODE"]
+            expected_code_part = self.subtitle_block['COMBOFIELD1']['value'] + '-' + part_block["MARK"]['value']
             if not part_block["CODE"]['value'].startswith(expected_code_part):
                 self.error_drawing.er19['boolean_value'] = True
 
@@ -449,8 +449,8 @@ class Drawing:
     def inspect_block(self, block_name: str, expected: Entity) -> bool:
         block = self.doc_dxf.blocks.get(block_name)
         if block is None:
-            return False
-
+            return True
+        
         for entity in block:
             if entity.dxftype() != expected.dxftype:
                 continue
@@ -461,6 +461,8 @@ class Drawing:
             if expected.attdef_tag is not None and entity.dxf.tag != expected.attdef_tag:
                 continue
             if expected.text_value is not None and entity.dxf.text != expected.text_value:
+                continue
+            if expected.text_style is not None and entity.dxf.style != expected.text_style:
                 continue
             return True
 
