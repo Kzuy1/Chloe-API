@@ -27,7 +27,7 @@ class Drawing:
         self.revision_blocks = self.sort_block(self.revision_blocks, 'REV-N')
         self.part_blocks = self.get_block_info('REDECAM_STEELWORK')
         self.format_block = self.get_block_info('REDE-A0', 'REDECAM_A1', 'REDECAM_A2','REDECAM_A3')
-        
+
         if self.has_multiple_blocks():
             self.message = self.error_drawing.get_error_messages()
             return
@@ -47,7 +47,7 @@ class Drawing:
         self.check_version_blocks_by_name()
         self.check_version_blocks_by_entity()
         self.check_older_layers()
-        # self.check_blocks_scale()
+        self.check_blocks_scale()
 
         self.message = self.error_drawing.get_error_messages()
     
@@ -385,10 +385,10 @@ class Drawing:
         rotation = insert.dxf.rotation % 360
 
         allowed_rotation_for_mirrored = 0.0
-        tolerance = 0.001
+        tolerance = 0.0009
         if not block.allow_mirrored and (x_scale < 0 or y_scale < 0 or not math.isclose(rotation, allowed_rotation_for_mirrored, abs_tol=tolerance)):
             return BlockScaleError.MIRRORED
-        
+
         if not any(math.isclose(z_scale, s * self.subtitle_block['z_scale'], abs_tol=tolerance) for s in block.allowed_scales):
             return BlockScaleError.SCALED
 
@@ -413,8 +413,6 @@ class Drawing:
 
             if error is None:
                 continue
-
-            print(error)
 
             blocks_checked.add(block_name)
 
