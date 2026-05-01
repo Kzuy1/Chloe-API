@@ -5,6 +5,7 @@ from Verify_Drawing_Redecam.OldLayers import old_layers
 from utils.file_utils import save_in_temp_folder, convert_file
 from ezdxf.entities.dimstyleoverride import DimStyleOverride
 from datetime import datetime
+from collections import defaultdict
 import ezdxf
 import os
 import re
@@ -26,6 +27,7 @@ class Drawing:
         self.revision_blocks = self.get_block_info('REDE-DISTINTA-REVISIONE')
         self.revision_blocks = self.sort_block(self.revision_blocks, 'REV-N')
         self.part_blocks = self.get_block_info('REDECAM_STEELWORK')
+        self.mark_blocks = self.get_block_info('MARK')
         self.format_block = self.get_block_info('REDE-A0', 'REDECAM_A1', 'REDECAM_A2','REDECAM_A3')
 
         if self.has_multiple_blocks():
@@ -48,6 +50,7 @@ class Drawing:
         self.check_version_blocks_by_entity()
         self.check_older_layers()
         self.check_blocks_scale()
+        self.check_part_indicate_quantity()
 
         self.message = self.error_drawing.get_error_messages()
     
@@ -292,6 +295,40 @@ class Drawing:
         #             self.error_drawing.er20['boolean_value'] = True
         #             self.error_drawing.er20['description'] += f"{round(compare_weight)} kg"
         #             break
+
+    # Função para verificar se todos os Blocos de Peças estão indicados
+    def check_part_indicate_quantity(self):
+        mark_dict = defaultdict(int)
+        for mark in self.mark_blocks:
+            value = mark.get("MARCA", {}).get("value")
+            if value:
+                mark_dict[value] += 1
+
+        parts_dict = defaultdict(int)
+        for part in self.part_blocks:
+            mark = part.get("MARK", {}).get("value")
+            qty = part.get("QTY", {}).get("value")
+
+            if not mark:
+                continue
+
+            try:
+                qty = int(qty)
+            except (ValueError, TypeError):
+                qty = 0
+
+            parts_dict[mark] = qty
+
+        for mark, qty in parts_dict.items():
+            mark_count = mark_dict.get(mark, 0)
+            if mark_count != qty:
+                self.error_drawing.al01['boolean_value'] = True
+                self.error_drawing.al01['description'] += f'\t\t\t{mark}: {qty} | Marca: {mark_count}\n'
+        
+        for mark in mark_dict:
+            if mark not in parts_dict:
+                self.error_drawing.er28['boolean_value'] = True
+                self.error_drawing.er28['description'] += f'\t\t\t{mark}\n'
 
     # Função para verificar o LTScale
     def check_line_scale_factor(self):
