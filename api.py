@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, send_file, make_response, after_this_request
 from waitress import serve
 from Excel_To_DXF.ListToDxf import ListToDxf
+from Excel_To_DXF_Redecam.ListToDxf import ListToDxf as ListToDxfRedecam
 from Verify_Drawing.Drawing import Drawing
 from Verify_Drawing_Redecam.Drawing import Drawing as DrawingRedecam
 from Importa_Part_Attributes_Excel_To_DXF.importAttributesToDxf import import_attributes_from_xlsx
@@ -16,21 +17,28 @@ app = Flask(__name__)
 def pagina_padrao():
     return 'Esta é a página padrão do meu site!'
 
-@app.route('/upload', methods=['POST'])
+@app.route('/import-data-to-dxf', methods=['POST'])
 def upload_file():
-    file = request.files['file']
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    temp_dir = os.path.join(base_dir, 'Excel_To_DXF', 'temp')
+    file = request.files.get('file')
+    import_type = request.form.get('import_type')
 
     if file:
-        convertExcelDXF = ListToDxf(file)
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        temp_dir = os.path.join(base_dir, 'Excel_To_DXF', 'temp')
+        
+        import_data = None
+        if import_type == 'redecam':
+            temp_dir = os.path.join(base_dir, 'Excel_To_DXF_Redecam', 'temp')
+            import_data = ListToDxfRedecam(file)
+        else:
+            import_data = ListToDxf(file)
     
         @after_this_request
         def cleanup(response):
             clear_temp(temp_dir)
             return response
 
-        return send_file(convertExcelDXF.target_dxf_path, as_attachment=True, download_name= convertExcelDXF.file_name + ".dxf", mimetype='application/dxf')
+        return send_file(import_data.target_dxf_path, as_attachment=True, download_name=import_data.file_name + ".dxf", mimetype='application/dxf')
     else:
         return jsonify({'message': 'Nenhum arquivo enviado.'}), 400
 
