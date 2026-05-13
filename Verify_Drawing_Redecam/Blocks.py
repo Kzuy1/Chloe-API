@@ -64,7 +64,7 @@ class BlockList:
         self.add_block('EMB_LISTA_DE_MATERIAL_INFO_v0.2', 'Bloco de Material das Informações')
         self.add_block('EMB_LISTA_DE_MATERIAL_DESCRITIVO_v0.2', 'Bloco de Material das Descrições')
 
-    def add_list_old_blocks_check_by_entity(self):
+    def add_list_old_blocks_check_by_entity(self): 
         self.add_block(name='10315775', description='Bloco de Planicidade', entity=Entity(dxftype='TEXT', text_value='4', text_style='ROMAND'))
         self.add_block(name='10315974', description='Bloco de Planicidade', entity=Entity(dxftype='TEXT', text_value='2', text_style='ROMAND'))
         self.add_block(name='15060899', description='Bloco de Informações da Junta de Expansão', entity=Entity(dxftype='ELLIPSE', layer='CONTORNI'))  
@@ -113,6 +113,31 @@ class BlockList:
         # TORQUE TABLE
 
     def add_list_blocks_check_scale(self):
+        self.add_block(name='SIMBOLO-SOLDA-AO-REDOR', description='Bloco de Símbolo de Solda ao Redor', allowed_scales=[1.0], allow_mirrored=True)
+        self.add_block(name='SIMBOLO-SOLDA-EM-CAMPO', description='Bloco de Símbolo de Solda em Campo', allowed_scales=[1.0], allowed_rotations=[0.0], allow_mirrored=True)
+        self.add_block(name='SIMBOLO-SOLDA-EM-MEIO-V', description='Bloco de Símbolo de Solda em Meio V', allowed_scales=[1.0], allow_mirrored=False)
+        self.add_block(name='SIMBOLO-SOLDA-EM-MEIO-V-PLANA', description='Bloco de Símbolo de Solda em Meio V Plana', allowed_scales=[1.0], allow_mirrored=False)
+        self.add_block(name='SIMBOLO-SOLDA-EM-V', description='Bloco de Símbolo de Solda em V', allowed_scales=[1.0], allow_mirrored=False)
+        self.add_block(name='SIMBOLO-SOLDA-EM-V-CONVEXA', description='Bloco de Símbolo de Solda em V Convexa', allowed_scales=[1.0], allow_mirrored=False)
+        self.add_block(name='SIMBOLO-SOLDA-EM-V-CONVEXA-DESCONTINUA', description='Bloco de Símbolo de Solda em V Convexa Descontínua', allowed_scales=[1.0], allow_mirrored=False)
+        self.add_block(name='SIMBOLO-SOLDA-EM-V-CONVEXA-DOS-DOIS-LADOS', description='Bloco de Símbolo de Solda em V Convexa dos Dois Lados', allowed_scales=[1.0], allow_mirrored=False)
+        self.add_block(name='SIMBOLO-SOLDA-EM-V-DOS-DOIS-LADOS', description='Bloco de Símbolo de Solda em V dos Dois Lados', allowed_scales=[1.0], allow_mirrored=False)
+        self.add_block(name='SIMBOLO-SOLDA-EM-V-PLANA', description='Bloco de Símbolo de Solda em V Plana', allowed_scales=[1.0], allow_mirrored=False)
+        self.add_block(name='SIMBOLO-SOLDA-FILETE', description='Bloco de Símbolo de Solda de Filete', allowed_scales=[1.0], allow_mirrored=False)
+        self.add_block(name='SIMBOLO-SOLDA-FILETE-COM-PERNA', description='Bloco de Símbolo de Solda de Filete com Perna', allowed_scales=[1.0], allow_mirrored=False)
+        self.add_block(name='SIMBOLO-SOLDA-FILETE-COM-PERNA-DESCONTINUA', description='Bloco de Símbolo de Solda de Filete com Perna Descontínua', allowed_scales=[1.0], allow_mirrored=False)
+        self.add_block(name='SIMBOLO-SOLDA-FILETE-COM-PERNA-DESCONTINUA-COINCIDENTE', description='Bloco de Símbolo de Solda de Filete com Perna Descontínua Coincidente', allowed_scales=[1.0], allow_mirrored=False)
+        self.add_block(name='SIMBOLO-SOLDA-FILETE-COM-PERNA-DOS-DOIS-LADOS', description='Bloco de Símbolo de Solda de Filete com Perna dos Dois Lados', allowed_scales=[1.0], allow_mirrored=False)
+        self.add_block(name='SIMBOLO-SOLDA-FILETE-DESCONTINUA', description='Bloco de Símbolo de Solda de Filete Descontínua', allowed_scales=[1.0], allow_mirrored=False)
+        self.add_block(name='SIMBOLO-SOLDA-FILETE-DESCONTINUA-COINCIDENTE', description='Bloco de Símbolo de Solda de Filete Descontínua Coincidente', allowed_scales=[1.0], allow_mirrored=False)
+        self.add_block(name='SIMBOLO-SOLDA-FILETE-DESCONTINUA-INTERCALADA', description='Bloco de Símbolo de Solda de Filete Descontínua Intercalada', allowed_scales=[1.0], allow_mirrored=False)
+        self.add_block(name='SIMBOLO-SOLDA-FILETE-DOS-DOIS-LADOS', description='Bloco de Símbolo de Solda de Filete dos Dois Lados', allowed_scales=[1.0], allow_mirrored=False)
+        self.add_block(name='SIMBOLO-SOLDA-RETA-CONVEXA', description='Bloco de Símbolo de Solda Reta Convexa', allowed_scales=[1.0], allow_mirrored=False)
+        self.add_block(name='SIMBOLO-SOLDA-RETA-CONVEXA-DESCONTINUA', description='Bloco de Símbolo de Solda Reta Convexa Descontínua', allowed_scales=[1.0], allow_mirrored=False)
+        self.add_block(name='SIMBOLO-SOLDA-RETA-CONVEXA-DOS-DOIS-LADOS', description='Bloco de Símbolo de Solda Reta Convexa dos Dois Lados', allowed_scales=[1.0], allow_mirrored=False)
+        self.add_block(name='SIMBOLO-SOLDA-RETA-PLANA', description='Bloco de Símbolo de Solda Reta Plana', allowed_scales=[1.0], allow_mirrored=False)
+        self.add_block(name='SIMBOLO-SOLDA-RETA-PLANA-DESCONTINUA', description='Bloco de Símbolo de Solda Reta Plana Descontínua', allowed_scales=[1.0], allow_mirrored=False)
+    
         self.add_block(name='10315775', description='Bloco de Planicidade', allowed_scales=[1.0], allow_mirrored=False)
         self.add_block(name='10315974', description='Bloco de Planicidade', allowed_scales=[1.0], allow_mirrored=False)
         self.add_block(name='12175727', description='Bloco de Indicação de Corte', allowed_scales=[1.0], allow_mirrored=True)
