@@ -87,6 +87,7 @@ class BlockList:
         self.add_block(name='SIMBOLO-SOLDA-RETA-CONVEXA-DOS-DOIS-LADOS', description='Bloco de Símbolo de Solda Reta Convexa dos Dois Lados', entity=Entity(dxftype='LINE', color = ACI.MAGENTA))
         self.add_block(name='SIMBOLO-SOLDA-RETA-PLANA', description='Bloco de Símbolo de Solda Reta Plana', entity=Entity(dxftype='LINE', color = ACI.MAGENTA))
         self.add_block(name='SIMBOLO-SOLDA-RETA-PLANA-DESCONTINUA', description='Bloco de Símbolo de Solda Reta Plana Descontínua', entity=Entity(dxftype='LINE', color = ACI.MAGENTA))
+        self.add_block(name='SIMBOLO-SOLDA-RETA-PLANA-DOS-DOIS-LADOS', description='Bloco de Símbolo de Solda Reta Plana dos Dois Lados', entity=Entity(dxftype='LINE', color = ACI.MAGENTA))
     
         self.add_block(name='10315775', description='Bloco de Planicidade', entity=Entity(dxftype='TEXT', text_value='4', text_style='ROMAND'))
         self.add_block(name='10315974', description='Bloco de Planicidade', entity=Entity(dxftype='TEXT', text_value='2', text_style='ROMAND'))
@@ -160,6 +161,7 @@ class BlockList:
         self.add_block(name='SIMBOLO-SOLDA-RETA-CONVEXA-DOS-DOIS-LADOS', description='Bloco de Símbolo de Solda Reta Convexa dos Dois Lados', allowed_scales=[1.0], allow_mirrored=False)
         self.add_block(name='SIMBOLO-SOLDA-RETA-PLANA', description='Bloco de Símbolo de Solda Reta Plana', allowed_scales=[1.0], allow_mirrored=False)
         self.add_block(name='SIMBOLO-SOLDA-RETA-PLANA-DESCONTINUA', description='Bloco de Símbolo de Solda Reta Plana Descontínua', allowed_scales=[1.0], allow_mirrored=False)
+        self.add_block(name='SIMBOLO-SOLDA-RETA-PLANA-DOS-DOIS-LADOS', description='Bloco de Símbolo de Solda Reta Plana dos Dois Lados', allowed_scales=[1.0], allow_mirrored=False)
     
         self.add_block(name='10315775', description='Bloco de Planicidade', allowed_scales=[1.0], allow_mirrored=False)
         self.add_block(name='10315974', description='Bloco de Planicidade', allowed_scales=[1.0], allow_mirrored=False)
