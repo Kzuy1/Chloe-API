@@ -191,6 +191,9 @@ class Drawing:
             if join_itemsin != self.subtitle_block['ITESIN']['value']:
                 self.error_drawing.er02['boolean_value'] = True
 
+        # Vericica se o TIT-2 e TIT-4 está vazio
+        if self.subtitle_block['TIT-2']['value'] != '' or self.subtitle_block['TIT-4']['value'] != '':
+            self.error_drawing.er29['boolean_value'] = True
         # Verifica se a escala condiz com o que está escrito
         scale_subtitle = self.subtitle_block['SCA']['value']
         if scale_subtitle in ('', "1:XX") or abs(float(scale_subtitle.replace("1:", "")) - self.subtitle_block['x_scale']) > 0.0001:
