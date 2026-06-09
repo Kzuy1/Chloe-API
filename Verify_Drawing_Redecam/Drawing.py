@@ -51,6 +51,7 @@ class Drawing:
         self.check_older_layers()
         self.check_blocks_scale()
         self.check_part_indicate_quantity()
+        self.check_font_style_text()
 
         self.message = self.error_drawing.get_error_messages()
     
@@ -194,6 +195,7 @@ class Drawing:
         # Vericica se o TIT-2 e TIT-4 está vazio
         if self.subtitle_block['TIT-2']['value'] != '' or self.subtitle_block['TIT-4']['value'] != '':
             self.error_drawing.er29['boolean_value'] = True
+
         # Verifica se a escala condiz com o que está escrito
         scale_subtitle = self.subtitle_block['SCA']['value']
         if scale_subtitle in ('', "1:XX") or abs(float(scale_subtitle.replace("1:", "")) - self.subtitle_block['x_scale']) > 0.0001:
@@ -522,3 +524,15 @@ class Drawing:
             if layer_name in old_layers:
                 self.error_drawing.er07['boolean_value'] = True
                 self.error_drawing.er07['description'] += f'\t\t\t{layer_name}\n'
+
+    # Função para verificar estilo de fonte do texto
+    def check_font_style_text(self):
+        disallowed_fonts = {'redecam texto da nota', 'redecam texto do rótulo', 'estilo de texto'}
+
+        for font in self.doc_dxf.styles:
+            style_name = font.dxf.name.strip().lower()
+
+            # verifica se contém qualquer termo proibido
+            if any(term in style_name for term in disallowed_fonts):
+                self.error_drawing.er30['boolean_value'] = True
+                break

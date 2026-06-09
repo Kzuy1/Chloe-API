@@ -29,6 +29,7 @@ class ErrorDrawing:
         self.er27 = {'description': ':lady_beetle: Error 27: Lista de Blocos na versão antiga:\n','boolean_value': False }
         self.er28 = {'description': ':lady_beetle: Error 28: Marcas encontradas no desenho, mas ausente na Lista de Peças:\n','boolean_value': False }
         self.er29 = {'description': ':lady_beetle: Error 29: Bloco de Legenda com descrição no TIT-2 ou TIT-4.','boolean_value': False }
+        self.er30 = {'description': ':lady_beetle: Error 30: Estilos de fonte de texto inválidos vindos do extraído.','boolean_value': False }
         self.al01 = {'description': ':lady_beetle: Alert 01: Quantidade de peças diverge do número de Marcas no desenho:\n','boolean_value': False }
 
     # self.erXX = {'description': ':lady_beetle: Error XX: XXXXXXXXX','boolean_value': False }
