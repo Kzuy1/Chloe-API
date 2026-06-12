@@ -52,6 +52,7 @@ class Drawing:
         self.check_blocks_scale()
         self.check_part_indicate_quantity()
         self.check_font_style_text()
+        self.check_drawing_default_settings()
 
         self.message = self.error_drawing.get_error_messages()
     
@@ -536,3 +537,16 @@ class Drawing:
             if any(term in style_name for term in disallowed_fonts):
                 self.error_drawing.er30['boolean_value'] = True
                 break
+    
+    # Função para verificar as configurações padrão do desenho
+    def check_drawing_default_settings(self):
+        layer_default = '0'
+        dimension_metric_default =  '1-' + str(int(round(self.subtitle_block['x_scale'], 0)))
+        dimension_inch_default = '1-' + str(int(round(self.subtitle_block['x_scale'], 0))) + '_USA'
+
+        if self.doc_dxf.header["$CLAYER"] != layer_default:
+            self.error_drawing.er31['boolean_value'] = True
+
+        if self.doc_dxf.header["$DIMSTYLE"] != dimension_metric_default and self.doc_dxf.header["$DIMSTYLE"] != dimension_inch_default:
+            self.error_drawing.er31['boolean_value'] = True
+        
