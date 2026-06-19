@@ -541,8 +541,12 @@ class Drawing:
     # Função para verificar as configurações padrão do desenho
     def check_drawing_default_settings(self):
         layer_default = '0'
-        dimension_metric_default =  '1-' + str(int(round(self.subtitle_block['x_scale'], 0)))
-        dimension_inch_default = '1-' + str(int(round(self.subtitle_block['x_scale'], 0))) + '_USA'
+
+        scale = self.subtitle_block['x_scale']
+        scale_str = str(int(scale)) if scale.is_integer() else str(scale)
+
+        dimension_metric_default = f'1-{scale_str}'
+        dimension_inch_default = f'1-{scale_str}_USA'
 
         if self.doc_dxf.header["$CLAYER"] != layer_default:
             self.error_drawing.er31['boolean_value'] = True
