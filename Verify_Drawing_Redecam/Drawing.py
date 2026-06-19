@@ -543,10 +543,11 @@ class Drawing:
         layer_default = '0'
 
         scale = self.subtitle_block['x_scale']
-        scale_str = str(int(scale)) if scale.is_integer() else str(scale)
 
-        dimension_metric_default = f'1-{scale_str}'
-        dimension_inch_default = f'1-{scale_str}_USA'
+        dimension_metric_default = f'1-{scale}'
+        dimension_inch_default = f'1-{scale}_USA'
+
+        print(dimension_inch_default , dimension_metric_default)
 
         if self.doc_dxf.header["$CLAYER"] != layer_default:
             self.error_drawing.er31['boolean_value'] = True
