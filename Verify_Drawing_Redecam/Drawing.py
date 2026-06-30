@@ -542,8 +542,12 @@ class Drawing:
     def check_drawing_default_settings(self):
         layer_default = '0'
 
-        scale = self.subtitle_block['x_scale']
-        scale_str = str(int(scale)) if scale == int(scale) else str(scale)
+        scale = round(self.subtitle_block['x_scale'], 2)
+
+        if math.isclose(scale, round(scale), abs_tol=0.01):
+            scale_str = str(int(round(scale)))
+        else:
+            scale_str = str(scale)
 
         dimension_metric_default = f'1-{scale_str}'
         dimension_inch_default = f'1-{scale_str}_USA'
