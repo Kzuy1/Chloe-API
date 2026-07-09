@@ -109,7 +109,7 @@ loop.set_exception_handler(unhandled_rejection_handler)
 # if __name__ == '__main__':
 #     app.run(host='0.0.0.0', port=3000, debug=True)
 
-# Opção para produção   19:50
+# Opção para produção   20:04
 if __name__ == '__main__':
     serve(app, host="0.0.0.0", port=8080)
 
