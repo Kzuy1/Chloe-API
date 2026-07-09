@@ -112,3 +112,4 @@ loop.set_exception_handler(unhandled_rejection_handler)
 # Opção para produção
 if __name__ == '__main__':
     serve(app, host="0.0.0.0", port=8080)
+
