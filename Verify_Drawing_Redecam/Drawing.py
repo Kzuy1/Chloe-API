@@ -175,15 +175,20 @@ class Drawing:
     # Função para verificar as informações do Bloco de Título do Desenho
     def check_subtitle_block(self):
         if not self.error_drawing.er01['boolean_value']:
+            if self.subtitle_block['SIN']['value'] == '':
+                code_drawing_sin = ""
+            else:
+                code_drawing_sin = "-" + self.subtitle_block['SIN']['value']
+
             if self.subtitle_block['FROM-DWG']['value'] + '_' + self.subtitle_block['REV']['value'] != self.file_drawing_code:
                 self.error_drawing.er02['boolean_value'] = True
             
-            if self.subtitle_block['COMBOFIELD1']['value'] + '_' + self.subtitle_block['DOC']['value'] + '-' + self.subtitle_block['NUM']['value'] != self.subtitle_block['FROM-DWG']['value']:
+            if self.subtitle_block['COMBOFIELD1']['value'] + code_drawing_sin + '_' + self.subtitle_block['DOC']['value'] + '-' + self.subtitle_block['NUM']['value'] != self.subtitle_block['FROM-DWG']['value']:
                 self.error_drawing.er02['boolean_value'] = True
 
             join_combofield = self.subtitle_block['PRN']['value'] + self.subtitle_block['LIN']['value']
-            if self.subtitle_block['ITESIN']['value']:
-                join_combofield += '-' + self.subtitle_block['ITESIN']['value']
+            if self.subtitle_block['ITE']['value']:
+                join_combofield += '-' + self.subtitle_block['ITE']['value']
             if join_combofield != self.subtitle_block['COMBOFIELD1']['value']:
                 self.error_drawing.er02['boolean_value'] = True
 
