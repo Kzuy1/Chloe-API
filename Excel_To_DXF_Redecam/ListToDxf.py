@@ -131,7 +131,7 @@ class ListToDxf:
     self.block_offset_y += 6
     self.msp_dxf.add_blockref(header_material_block.name, insert=(self.block_offset_x, 6, 0))
     self.msp_dxf.add_blockref(note_material_block.name, insert=(self.block_offset_x, self.block_offset_y, 0))
-    self.block_offset_y += 12
+    self.block_offset_y += 11
 
   # Adiciona os Blocos de Peças ao DXF
   def add_part_list(self, list_part):
@@ -223,16 +223,20 @@ class ListToDxf:
       (self.block_offset_x + 106, self.block_offset_y + 5, 0)
     ]
     self.addTagDraw("TAG-CTRL+F-" + drawing_code, (self.block_offset_x + 143, self.block_offset_y, 0), rectanglePointsTag)
-    self.block_offset_y += 8
-
-    self.add_text("- WEIGHT OF N. 01 PIECE: " + part_list[0].unit_weight + " kg", (self.block_offset_x + 35.333333, self.block_offset_y, 0), general_properties_notes_contorni)
     self.block_offset_y += 5
 
-    self.add_text("- WEIGHT OF N. " + f"{part_list[0].quantity:02d}" + " PIECES: " + part_list[0].total_weight + " kg", (self.block_offset_x + 35.333333, self.block_offset_y, 0), general_properties_notes_contorni)
-    self.block_offset_y += 5
+    notes_weight_part_block = self.doc_dxf.blocks.get('NOTE-PARTS-WEIGHT')
+    notes_weight_part_block_insert = self.msp_dxf.add_blockref(notes_weight_part_block.name, insert=(self.block_offset_x + 180, self.block_offset_y, 0))
 
-    self.add_text("- PIECES REQUIRED: " + str(part_list[0].quantity), (self.block_offset_x + 35.333333, self.block_offset_y, 0), general_properties_notes_contorni)
-    self.block_offset_y += 8
+    values = {
+      "PIECES-REQUIRED1": str(part_list[0].quantity),
+      "PIECES-REQUIRED2": f"{part_list[0].quantity:02d}",
+      "TOTAL-WEIGHT": part_list[0].total_weight + " kg",
+      "UNIT-WEIGHT": part_list[0].unit_weight + " kg",
+    }
+
+    notes_weight_part_block_insert.add_auto_attribs(values)
+    self.block_offset_y += 18
 
 class DrawingList:
   def __init__(self, sheet, sheet_parts, sheet_material):
