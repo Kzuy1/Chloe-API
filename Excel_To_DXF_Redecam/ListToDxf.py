@@ -225,17 +225,29 @@ class ListToDxf:
     self.addTagDraw("TAG-CTRL+F-" + drawing_code, (self.block_offset_x + 143, self.block_offset_y, 0), rectanglePointsTag)
     self.block_offset_y += 5
 
-    notes_weight_part_block = self.doc_dxf.blocks.get('NOTE-PARTS-WEIGHT')
-    notes_weight_part_block_insert = self.msp_dxf.add_blockref(notes_weight_part_block.name, insert=(self.block_offset_x + 180, self.block_offset_y, 0))
+    if part_list[0].quantity > 1:
+      notes_weight_parts_block = self.doc_dxf.blocks.get('NOTE-PARTS-WEIGHT')
+      notes_weight_parts_block_insert = self.msp_dxf.add_blockref(notes_weight_parts_block.name, insert=(self.block_offset_x + 180, self.block_offset_y, 0))
 
-    values = {
-      "PIECES-REQUIRED1": str(part_list[0].quantity),
-      "PIECES-REQUIRED2": f"{part_list[0].quantity:02d}",
-      "TOTAL-WEIGHT": part_list[0].total_weight + " kg",
-      "UNIT-WEIGHT": part_list[0].unit_weight + " kg",
-    }
+      values = {
+        "PIECES-REQUIRED1": str(part_list[0].quantity),
+        "PIECES-REQUIRED2": f"{part_list[0].quantity:02d}",
+        "TOTAL-WEIGHT": part_list[0].total_weight + " kg",
+        "UNIT-WEIGHT": part_list[0].unit_weight + " kg",
+      }
 
-    notes_weight_part_block_insert.add_auto_attribs(values)
+      notes_weight_parts_block_insert.add_auto_attribs(values)
+    
+    if part_list[0].quantity == 1:
+      notes_weight_part_block = self.doc_dxf.blocks.get('NOTE-PART-WEIGHT')
+      notes_weight_part_block_insert = self.msp_dxf.add_blockref(notes_weight_part_block.name, insert=(self.block_offset_x + 180, self.block_offset_y, 0))
+
+      values = {
+        "UNIT-WEIGHT": part_list[0].unit_weight + " kg",
+      }
+
+      notes_weight_part_block_insert.add_auto_attribs(values)
+
     self.block_offset_y += 18
 
 class DrawingList:
