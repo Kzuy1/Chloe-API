@@ -28,7 +28,10 @@ class Drawing:
         self.revision_blocks = self.sort_block(self.revision_blocks, 'REV-N')
         self.part_blocks = self.get_block_info('REDECAM_STEELWORK')
         self.mark_blocks = self.get_block_info('MARK')
-        self.format_block = self.get_block_info('REDE-A0', 'REDECAM_A1', 'REDECAM_A2','REDECAM_A3')
+        self.format_block = self.get_block_info('REDE-A0', 'REDECAM_A1', 'REDECAM_A2', 'REDECAM_A3')
+        self.material_blocks = self.get_block_info('BOM')
+        self.single_weight_note = self.get_block_info("NOTE-PART-WEIGHT")
+        self.weight_breakdown_note = self.get_block_info("NOTE-PARTS-WEIGHT")
 
         if self.has_multiple_blocks():
             self.message = self.error_drawing.get_error_messages()
@@ -562,4 +565,17 @@ class Drawing:
 
         if self.doc_dxf.header["$DIMSTYLE"] != dimension_metric_default and self.doc_dxf.header["$DIMSTYLE"] != dimension_inch_default:
             self.error_drawing.er31['boolean_value'] = True
-        
+    
+    # Função para verificar os pesos das notas de peças
+    def check_notes_weight(self):
+        for note in self.weight_breakdown_note:
+            
+            note_qty = float(note["PIECES-REQUIRED1"]['value'])
+            note_weight = float(note["UNIT-WEIGHT"]['value'].replace("kg", "").strip())
+            note_total_weight = float(note["TOTAL-WEIGHT"]['value'].replace("kg", "").strip())
+
+            print(f"Note QTY: {note_qty}, Note Weight: {note_weight}, Note Total Weight: {note_total_weight}")
+
+            if abs(note_qty * note_weight - note_total_weight) > 0.0001:
+                self.error_drawing.er32['boolean_value'] = True
+                break
