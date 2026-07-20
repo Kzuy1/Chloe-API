@@ -63,6 +63,7 @@ class BlockList:
         self.add_block('EMB_LISTA_DE_MATERIAL_DESCRITIVO_ING_v0.2', 'Bloco de Material das Descrições')
         self.add_block('EMB_LISTA_DE_MATERIAL_INFO_v0.2', 'Bloco de Material das Informações')
         self.add_block('EMB_LISTA_DE_MATERIAL_DESCRITIVO_v0.2', 'Bloco de Material das Descrições')
+        self.add_block('1418104', 'Bloco de Indicação de Parafuso para outro desenho')
 
     def add_list_old_blocks_check_by_entity(self): 
         self.add_block(name='SIMBOLO-SOLDA-EM-MEIO-V', description='Bloco de Símbolo de Solda em Meio V', entity=Entity(dxftype='LINE', color = ACI.MAGENTA))
