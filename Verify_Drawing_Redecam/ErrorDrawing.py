@@ -31,7 +31,9 @@ class ErrorDrawing:
         self.er29 = {'description': ':lady_beetle: Error 29: Bloco de Legenda com descrição no TIT-2 ou TIT-4.','boolean_value': False }
         self.er30 = {'description': ':lady_beetle: Error 30: Estilos de fonte de texto inválidos vindos do extraído.','boolean_value': False }
         self.er31 = {'description': ':lady_beetle: Error 31: As configurações padrão do desenho estão incorretas. Layer atual deve ser "0" e o estilo de cota deve corresponder à escala do desenho.','boolean_value': False }
-        self.er32 = {'description': ':lady_beetle: Error 32: Notas de peso de peça não batendo a multiplicação.','boolean_value': False }
+        self.er32 = {'description': ':lady_beetle: Error 32: Notas do Peso das Peças com peso total divergente da multiplicação','boolean_value': False }
+        self.er33 = {'description': ':lady_beetle: Error 33: Notas do Peso das Peças com quantidades divergentes.','boolean_value': False }
+        self.er34 = {'description': ':lady_beetle: Error 34: Soma dos pesos unitários das Notas do Peso das Peças divergente do peso da Lista de Materiais.','boolean_value': False }
         self.al01 = {'description': ':lady_beetle: Alert 01: Quantidade de peças diverge do número de Marcas no desenho:\n','boolean_value': False }
 
     # self.erXX = {'description': ':lady_beetle: Error XX: XXXXXXXXX','boolean_value': False }
