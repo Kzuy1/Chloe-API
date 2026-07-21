@@ -56,6 +56,7 @@ class Drawing:
         self.check_part_indicate_quantity()
         self.check_font_style_text()
         self.check_drawing_default_settings()
+        self.check_notes_weight()
 
         self.message = self.error_drawing.get_error_messages()
     
@@ -569,13 +570,26 @@ class Drawing:
     # Função para verificar os pesos das notas de peças
     def check_notes_weight(self):
         for note in self.weight_breakdown_note:
-            
             note_qty = float(note["PIECES-REQUIRED1"]['value'])
+            note_qty2 = float(note["PIECES-REQUIRED2"]['value'])
             note_weight = float(note["UNIT-WEIGHT"]['value'].replace("kg", "").strip())
             note_total_weight = float(note["TOTAL-WEIGHT"]['value'].replace("kg", "").strip())
 
-            print(f"Note QTY: {note_qty}, Note Weight: {note_weight}, Note Total Weight: {note_total_weight}")
-
             if abs(note_qty * note_weight - note_total_weight) > 0.0001:
                 self.error_drawing.er32['boolean_value'] = True
-                break
+
+            if note_qty != note_qty2:
+                self.error_drawing.er33['boolean_value'] = True
+        
+        bom_weight_sum = sum(
+            float(block["WEI"]["value"])
+            for block in self.material_blocks
+        )
+
+        note_unit_weight_sum = sum(
+            float(note["UNIT-WEIGHT"]["value"].replace("kg", "").strip())
+            for note in (self.single_weight_note + self.weight_breakdown_note)
+        )
+
+        if abs(bom_weight_sum - note_unit_weight_sum) > 0.0001:
+            self.error_drawing.er34["boolean_value"] = True
