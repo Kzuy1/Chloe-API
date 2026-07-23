@@ -16,7 +16,7 @@ class Drawing:
         self.error_drawing = ErrorDrawing()
         self.data_issue = data_issue
         self.full_path = save_in_temp_folder(file, __file__)
-        self.convert_to_dxt()
+        self.convert_to_dxf()
         self.file_drawing_code = self.get_drawing_code()
         self.file_drawing_code_separate = self.get_drawing_code_separate()
         self.layer_list = LayerList()
@@ -77,7 +77,7 @@ class Drawing:
         return self.error_drawing.er09['boolean_value']
     
     # Função para converter o arquivo
-    def convert_to_dxt(self):
+    def convert_to_dxf(self):
         ext = os.path.splitext(self.full_path)[1].lower()
 
         if ext == ".dwg":
