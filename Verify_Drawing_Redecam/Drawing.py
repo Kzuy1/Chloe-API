@@ -16,13 +16,12 @@ class Drawing:
         self.error_drawing = ErrorDrawing()
         self.data_issue = data_issue
         self.full_path = save_in_temp_folder(file, __file__)
-        self.convert_to_dxf()
+        self.doc_dxf = self.convert_to_dxf()
+        self.msp_dxf = self.doc_dxf.modelspace()
         self.file_drawing_code = self.get_drawing_code()
         self.file_drawing_code_separate = self.get_drawing_code_separate()
         self.layer_list = LayerList()
         self.layer_list.add_default_layer()
-        self.doc_dxf = ezdxf.readfile(self.full_path)
-        self.msp_dxf = self.doc_dxf.modelspace()
         self.subtitle_block = self.get_block_info('REDECAM_TITLE-BLOCK')
         self.revision_blocks = self.get_block_info('REDE-DISTINTA-REVISIONE')
         self.revision_blocks = self.sort_block(self.revision_blocks, 'REV-N')
@@ -86,6 +85,16 @@ class Drawing:
                 output_extension="dxf",
                 cad_version="ACAD2010"
             )
+        
+        self.doc_dxf = ezdxf.readfile(self.full_path)
+        
+        if ext == ".dxf":
+            with open(self.full_path, "rb") as file:
+                header = file.read(22)
+                if header.startswith(b"AutoCAD Binary DXF"):
+                    self.doc_dxf.save()
+
+        return self.doc_dxf
 
     # Função para pegar o código do Desenho
     def get_drawing_code(self):
