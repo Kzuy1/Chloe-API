@@ -57,6 +57,7 @@ class Drawing:
         self.check_font_style_text()
         self.check_drawing_default_settings()
         self.check_notes_weight()
+        self.check_notes_material()
 
         self.message = self.error_drawing.get_error_messages()
     
@@ -593,3 +594,40 @@ class Drawing:
 
         if abs(bom_weight_sum - note_unit_weight_sum) > 0.0001:
             self.error_drawing.er34["boolean_value"] = True
+
+    def check_notes_material(self):
+        sheet_material_note = set()
+        profile_material_note = set()
+
+        for entity in self.doc_dxf.modelspace().query('TEXT[layer=="TESTI"]'):
+            text = entity.dxf.text.strip()
+
+            if "SHEET MATERIAL:" in text:
+                sheet_material_note = {
+                    material.strip()
+                    for material in text.split("SHEET MATERIAL:", 1)[1].split("/")
+                }
+                continue
+
+            if "PROFILES MATERIAL:" in text:
+                profile_material_note = {
+                    material.strip()
+                    for material in text.split("PROFILES MATERIAL:", 1)[1].split("/")
+                }
+                continue
+        
+        sheet_material_bom = set()
+        profile_material_bom = set()
+
+        for block in self.material_blocks:
+            material = block["MAT"]["value"].strip()
+            unit = block["UNI"]["value"]
+
+            if unit == "m²":
+                sheet_material_bom.add(material)
+
+            elif unit == "m":
+                profile_material_bom.add(material)
+
+        if sheet_material_note != sheet_material_bom or profile_material_note != profile_material_bom:
+            self.error_drawing.er35["boolean_value"] = True
