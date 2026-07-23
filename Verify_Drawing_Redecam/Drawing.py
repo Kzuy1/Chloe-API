@@ -57,6 +57,7 @@ class Drawing:
         self.check_drawing_default_settings()
         self.check_notes_weight()
         self.check_notes_material()
+        self.check_different_project_code()
 
         self.message = self.error_drawing.get_error_messages()
     
@@ -604,6 +605,7 @@ class Drawing:
         if abs(bom_weight_sum - note_unit_weight_sum) > 0.0001:
             self.error_drawing.er34["boolean_value"] = True
 
+    # Função para verificar os materiais das notas
     def check_notes_material(self):
         sheet_material_note = set()
         profile_material_note = set()
@@ -640,3 +642,31 @@ class Drawing:
 
         if sheet_material_note != sheet_material_bom or profile_material_note != profile_material_bom:
             self.error_drawing.er35["boolean_value"] = True
+
+    # Função para verificar se tem indicação de projeto diferente no código do desenho
+    def check_different_project_code(self):
+        HEX_DIGITS = set("0123456789ABCDEFabcdef")
+        pattern = re.compile(r"[CP]\d{6}")
+
+        with open(self.full_path, "r", encoding="utf-8", errors="ignore") as file:
+            for line in file:
+                for match in pattern.finditer(line):
+                    code = match.group()
+                    start = match.start()
+                    end = match.end()
+
+                    # Ignore A$C123456 (nomes gerados automaticamente pelo AutoCAD)
+                    if start >= 2 and line[start-2:start] == "A$":
+                        continue
+
+                    # Ignore se vier logo após um dígito hex (GUID/blob binário)
+                    if start > 0 and line[start-1] in HEX_DIGITS:
+                        continue
+
+                    # Ignore se seguido de qualquer alfanumérico (continuação de blob/número maior)
+                    if end < len(line) and line[end].isalnum():
+                        continue
+
+                    if code != self.subtitle_block['PRN']['value']:
+                        self.error_drawing.er36["boolean_value"] = True
+                        return
