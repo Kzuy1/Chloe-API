@@ -189,6 +189,14 @@ class Drawing:
 
     # Função para verificar as informações do Bloco de Título do Desenho
     def check_subtitle_block(self):
+        expected_titles = {
+            "MDM": "FABRICATION DRAWING",
+            "MDS": "STEELWORK ASSEMBLY DRAWING",
+            "MDA": "ASSEMBLY DRAWING",
+            "MDE": "ERECTION DRAWING",
+            "MGV": "STANDARD DRAWING",
+        }
+        
         if not self.error_drawing.er01['boolean_value']:
             if self.subtitle_block['SIN']['value'] == '':
                 code_drawing_sin = ""
@@ -213,9 +221,16 @@ class Drawing:
             if join_itemsin != self.subtitle_block['ITESIN']['value']:
                 self.error_drawing.er02['boolean_value'] = True
 
-        # Vericica se o TIT-2 e TIT-4 está vazio
+        # Verifica se o TIT-2 e TIT-4 está vazio
         if self.subtitle_block['TIT-2']['value'] != '' or self.subtitle_block['TIT-4']['value'] != '':
             self.error_drawing.er29['boolean_value'] = True
+
+        # Verifica se o TIT-3 está preenchido corretamente
+        expected_title = expected_titles.get(self.subtitle_block['DOC']['value'])
+        
+        if self.subtitle_block['TIT-3']['value'] != expected_title and expected_title is not None:
+            self.error_drawing.er37["boolean_value"] = True
+            self.error_drawing.er37["description"] += f'\t\t\tEsperado: {expected_title}\n'
 
         # Verifica se a escala condiz com o que está escrito
         scale_subtitle = self.subtitle_block['SCA']['value']
