@@ -694,5 +694,5 @@ class Drawing:
             for code in pattern.findall(text):
                 if not code.startswith(expected_project_code):
                     self.error_drawing.er36["boolean_value"] = True
-                    self.error_drawing.er36["description"] += code
+                    self.error_drawing.er36["description"] += f"\t\t\tEncontrado: {code}\n"
                     return

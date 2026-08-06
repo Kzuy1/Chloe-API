@@ -36,7 +36,7 @@ class ErrorDrawing:
         self.er34 = {'description': ':lady_beetle: Error 34: Soma dos pesos unitários das Notas do Peso das Peças divergente do peso da Lista de Materiais.','boolean_value': False }
         self.er35 = {'description': ':lady_beetle: Error 35: Materiais das notas "SHEET MATERIAL" ou "PROFILES MATERIAL" divergentes da Lista de Materiais.','boolean_value': False }
         self.er36 = {'description': ':lady_beetle: Error 36: O desenho contém referências a outro projeto:\n','boolean_value': False }
-        self.er37 = {'description': ':lady_beetle: Error 37: Bloco de Legenda com descrição incorreta no TIT-3 para o tipo de documento. Esperado:\n','boolean_value': False }
+        self.er37 = {'description': ':lady_beetle: Error 37: Bloco de Legenda com descrição incorreta no TIT-3 para o tipo de documento.\n','boolean_value': False }
         self.al01 = {'description': ':lady_beetle: Alert 01: Quantidade de peças diverge do número de Marcas no desenho:\n','boolean_value': False }
 
     # self.erXX = {'description': ':lady_beetle: Error XX: XXXXXXXXX','boolean_value': False }
