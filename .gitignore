@@ -13,3 +13,5 @@ test.py
 
 !Excel_To_DXF/BLOCO-BRANCO.dxf
 !Excel_To_DXF_Redecam/BLOCO-BRANCO.dxf
+
+.env
