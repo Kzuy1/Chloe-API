@@ -2,6 +2,7 @@ from Verify_Drawing_Redecam.ErrorDrawing import ErrorDrawing
 from Verify_Drawing_Redecam.Layer import LayerList
 from Verify_Drawing_Redecam.Blocks import BlockList, Entity, BlockScaleError
 from Verify_Drawing_Redecam.OldLayers import old_layers
+from infra.DBArticles import DBArticoli
 from utils.file_utils import save_in_temp_folder, convert_file
 from ezdxf.entities.dimstyleoverride import DimStyleOverride
 from datetime import datetime
@@ -22,6 +23,7 @@ class Drawing:
         self.file_drawing_code_separate = self.get_drawing_code_separate()
         self.layer_list = LayerList()
         self.layer_list.add_default_layer()
+        self.db_articoli = DBArticoli()
         self.subtitle_block = self.get_block_info('REDECAM_TITLE-BLOCK')
         self.revision_blocks = self.get_block_info('REDE-DISTINTA-REVISIONE')
         self.revision_blocks = self.sort_block(self.revision_blocks, 'REV-N')
@@ -31,6 +33,11 @@ class Drawing:
         self.material_blocks = self.get_block_info('BOM')
         self.single_weight_note = self.get_block_info("NOTE-PART-WEIGHT")
         self.weight_breakdown_note = self.get_block_info("NOTE-PARTS-WEIGHT")
+        self.fasteners_blocks = self.get_block_info("REDECAM_FASTENERS")
+        self.gaskets_blocks = self.get_block_info("REDECAM_GASKET")
+        self.insulation_blocks = self.get_block_info("REDECAM_RAW+INSULATION")
+        self.fittings_blocks = self.get_block_info("REDECAM_FITTINGS+OTHERS")
+        
 
         if self.has_multiple_blocks():
             self.message = self.error_drawing.get_error_messages()
@@ -58,6 +65,7 @@ class Drawing:
         self.check_notes_weight()
         self.check_notes_material()
         self.check_different_project_code()
+        self.check_commercial_blocks()
 
         self.message = self.error_drawing.get_error_messages()
     
@@ -696,3 +704,34 @@ class Drawing:
                     self.error_drawing.er36["boolean_value"] = True
                     self.error_drawing.er36["description"] += f"\t\t\tEncontrado: {code}\n"
                     return
+
+    # Função para verificar os blocos comerciais
+    def check_commercial_blocks(self):
+        commercial_blocks = {
+            "FASTENERS": self.fasteners_blocks,
+            "GASKET": self.gaskets_blocks,
+            "RAW+INSULATION": self.insulation_blocks,
+            "FITTINGS+OTHERS": self.fittings_blocks,
+        }
+
+        for block_type, blocks in commercial_blocks.items():
+            for block in blocks:
+                if not block["CODE"]["value"]:
+                    self.error_drawing.er38["boolean_value"] = True
+                    self.error_drawing.er38["description"] += f"\t\t\t{block['MARK']['value']} - {block['DESCL1']['value']}\n"
+                    continue
+
+                article = self.db_articoli.get_article(
+                    block["CODE"]["value"],
+                    block_type
+                    )
+
+                if article is None:
+                    self.error_drawing.er38["boolean_value"] = True
+                    self.error_drawing.er38["description"] += f"\t\t\t{block['MARK']['value']} - {block['DESCL1']['value']}\n"
+            
+
+
+
+            
+
