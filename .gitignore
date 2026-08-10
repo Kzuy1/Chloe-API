@@ -4,6 +4,7 @@ __pycache__/
 package-lock.json
 config.json
 test.py
+dbarticoli.db
 *.xlsx
 *.dwl2
 *.dwl
