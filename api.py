@@ -5,6 +5,8 @@ from Excel_To_DXF_Redecam.ListToDxf import ListToDxf as ListToDxfRedecam
 from Verify_Drawing.Drawing import Drawing
 from Verify_Drawing_Redecam.Drawing import Drawing as DrawingRedecam
 from Importa_Part_Attributes_Excel_To_DXF.importAttributesToDxf import import_attributes_from_xlsx
+from infra.DBArticles import DBArticoli
+from infra.DBArticles import DBArticoli
 from utils.file_utils import clear_temp
 import os
 import asyncio
@@ -91,6 +93,15 @@ def routeAddAttributes():
         return send_file(output_zip_path, as_attachment=True, download_name='resultado.zip', mimetype='application/zip')
     else:
         return jsonify({'message': 'Nenhum arquivo enviado.'}), 400
+
+@app.route('/update-article', methods=['POST'])
+def update_article():
+    db_articoli = DBArticoli()
+    db_articoli.update_database()
+
+    return jsonify({
+        'message': 'Database updated successfully.'
+    }), 200
 
 # Erro no Handling
 def uncaught_exception_handler(ex):
