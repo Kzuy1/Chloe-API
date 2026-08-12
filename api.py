@@ -8,12 +8,14 @@ from Importa_Part_Attributes_Excel_To_DXF.importAttributesToDxf import import_at
 from infra.DBArticles import DBArticoli
 from infra.DBArticles import DBArticoli
 from utils.file_utils import clear_temp
+from dotenv import load_dotenv
 import os
 import asyncio
 import sys
 import gc
 
 app = Flask(__name__)
+load_dotenv()
 
 @app.route('/')
 def pagina_padrao():

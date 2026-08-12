@@ -1,3 +1,6 @@
+import os
+
+
 class ErrorDrawing: 
     def __init__(self):
         self.ed01 = {'description': ':lady_beetle: [Error ED01:](<https://docs.satusequipamentos.com.br/docs/chloe/erros-de-desenho#error-ed01>) O nome arquivo não está separado corretamente.','boolean_value': False }
@@ -38,7 +41,7 @@ class ErrorDrawing:
         for error in self.__dict__.items():
             if error[1]['boolean_value']:
                 message_error = error[1]['description']
-                if len(message_error) > 3999:
+                if len(message_error) > int(os.getenv("DISCORD_LIMIT_PATH_MESSAGE")):
                     string_error.append(string_message)
                     string_message = message_error
                 else:
