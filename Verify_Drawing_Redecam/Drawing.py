@@ -592,13 +592,16 @@ class Drawing:
         else:
             scale_str = str(scale)
 
-        dimension_metric_default = f'1-{scale_str}'
-        dimension_inch_default = f'1-{scale_str}_USA'
+        dimension_defaults = {
+            f"1-{scale_str}",
+            f"1-{scale_str}_USA",
+            f"1-{scale_str}_GRATING",
+        }
 
         if self.doc_dxf.header["$CLAYER"] != layer_default:
             self.error_drawing.er31['boolean_value'] = True
 
-        if self.doc_dxf.header["$DIMSTYLE"] != dimension_metric_default and self.doc_dxf.header["$DIMSTYLE"] != dimension_inch_default:
+        if self.doc_dxf.header["$DIMSTYLE"] not in dimension_defaults:
             self.error_drawing.er31['boolean_value'] = True
     
     # Função para verificar os pesos das notas de peças
