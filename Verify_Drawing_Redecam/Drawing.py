@@ -724,26 +724,41 @@ class Drawing:
                     self.error_drawing.er38["description"] += f"\t\t\t{block['MARK']['value']} - {block['DESCL1']['value']}\n"
                     continue
 
-                # article = self.db_articoli.get_article(
-                #     block["CODE"]["value"],
-                #     block_type
-                #     )
+                article = self.db_articoli.get_article(
+                    block["CODE"]["value"],
+                    block_type
+                    )
 
-                # if article is None:
-                #     self.error_drawing.er38["boolean_value"] = True
-                #     self.error_drawing.er38["description"] += f"\t\t\t{block['MARK']['value']} - {block['DESCL1']['value']}\n"
+                if article is None:
+                    self.error_drawing.er38["boolean_value"] = True
+                    self.error_drawing.er38["description"] += f"\t\t\t{block['MARK']['value']} - {block['DESCL1']['value']}\n"
 
-                # article_by_block = self.db_articoli.normalize_article(article, block["QTY"]["value"], block_type)
+                article_by_block = self.db_articoli.normalize_article(article, block["QTY"]["value"], block_type)
 
-                # for attribute, value in article_by_block.items():
+                for attribute, value in article_by_block.items():
+                    block_value = block[attribute]["value"]
 
-                #     if str(block[attribute]["value"]).strip() != str(value).strip():
-                #         self.error_drawing.er39["boolean_value"] = True
+                    if attribute in ("WEIGHT", "TOTAL") and block_value != 'None':
+                        block_value = float(str(block_value).replace(",", "."))
+                        value = float(str(value).replace(",", "."))
 
-                #         self.error_drawing.er39["description"] += (
-                #             f"\t\t\t{block['MARK']['value']} - "
-                #             f"{block['DESCL1']['value']}\n"
-                #             f"\t\t\t\t{attribute}: "
-                #             f"Desenho='{block[attribute]['value']}' | "
-                #             f"DB='{value}'\n"
-                #         )
+                        equal = math.isclose(
+                            block_value,
+                            value,
+                            abs_tol=0.001
+                        )
+                    else:
+                        equal = str(block_value).strip() == str(value).strip()
+
+                    if not equal:
+                        self.error_drawing.er39["boolean_value"] = True
+
+                        self.error_drawing.er39["description"] += (
+                            f"\t\t\t{block['MARK']['value']} - "
+                            f"{block['DESCL1']['value']}\n"
+                            f"\t\t\t\t{attribute}: "
+                            f"Desenho=`{block[attribute]['value']}` | "
+                            f"DB=`{value}`\n"
+                        )
+
+                        continue

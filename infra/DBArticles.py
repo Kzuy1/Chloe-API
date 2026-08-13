@@ -58,38 +58,51 @@ class DBArticoli:
         return cursor.fetchone()
 
     def normalize_article(self, article, quantity, block_type):
-        weight = float(article["WEIGHT"].replace(",", "."))
-        quantity = float(quantity)
-        total = round(weight * quantity, 3)
-
-        normalized = {
-            "DESCL1": article["DescriptionENG"],
-            "WEIGHT": weight,
-            "TOTAL": total,
-            "MATERIAL": article["MATERIAL"],
-            "NORM": article["NORM"],
-            "STANDARD": article["STANDARD"],
-            "STYPE": article["STYPE"],
-            "TYPE": article["TYPE"],
-            "DIAMETER": article["DIAMETER"],
-        }
+        quantity = float(quantity or 0)
 
         if block_type == "FASTENERS":
-            normalized.update({
+            weight = (
+                0
+                if article["WEIGHT"] is None
+                else float(str(article["WEIGHT"]).replace(",", "."))
+            )
+
+            return {
+                "DESCL1": article["DescriptionENG"],
                 "UNI": "N.",
-                "DIAMETER": article["DIAMETER"],
-            })
+                "WEIGHT": weight,
+                "TOTAL": round(weight * quantity, 3),
+                "MATERIAL": article["MATERIAL"] or "",
+                "NORM": article["NORM"] or "",
+                "STANDARD": article["STANDARD"] or "",
+                "STYPE": article["STYPE"] or "",
+                "TYPE": article["TYPE"] or "",
+                "DIAMETER": article["DIAMETER"] or "",
+            }
 
-        if block_type == "GASKET":
-            normalized.update({
-               "UNI": article["Unit"],
-            })
+        if block_type in ("GASKET", "RAW+INSULATION", "FITTINGS+OTHERS"):
+            weight = (
+                0
+                if article["Unitweight"] is None
+                else float(str(article["Unitweight"]).replace(",", "."))
+            )
 
-        if block_type == "RAW+INSULATION":
-            normalized.update({
-               "UNI": article["Unit"],
-            })
-        
-        return normalized
+            normalized = {
+                "DESCL1": article["DescriptionENG"],
+                "WEIGHT": weight,
+                "TOTAL": round(weight * quantity, 3),
+                "MATERIAL": article["MATERIAL"] or "",
+                "NORM": "",
+                "STANDARD": article["Standard"] or "",
+                "STYPE": article["STYPE"] or "",
+                "TYPE": article["TYPE"] or "",
+            }
+
+            if block_type in ("GASKET", "RAW+INSULATION"):
+                normalized["UNI"] = article["Unit"] or ""
+
+            return normalized
+
+        return None
         
         
