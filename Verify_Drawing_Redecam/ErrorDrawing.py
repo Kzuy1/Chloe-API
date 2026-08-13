@@ -38,6 +38,7 @@ class ErrorDrawing:
         self.er36 = {'description': ':lady_beetle: Error 36: O desenho contém referências a outro projeto:\n','boolean_value': False }
         self.er37 = {'description': ':lady_beetle: Error 37: Bloco de Legenda com descrição incorreta no TIT-3 para o tipo de documento.\n','boolean_value': False }
         self.er38 = {'description': ':lady_beetle: Error 38: Bloco comercial com código não prenchido ou incorreto:\n','boolean_value': False }
+        self.er39 = {'description': ':lady_beetle: Error 39: Bloco comercial preenchido incorretamente:\n','boolean_value': False }
         self.al01 = {'description': ':lady_beetle: Alert 01: Quantidade de peças diverge do número de Marcas no desenho:\n','boolean_value': False }
 
     # self.erXX = {'description': ':lady_beetle: Error XX: XXXXXXXXX','boolean_value': False }
