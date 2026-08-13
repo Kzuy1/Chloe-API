@@ -56,5 +56,40 @@ class DBArticoli:
         )
 
         return cursor.fetchone()
+
+    def normalize_article(self, article, quantity, block_type):
+        weight = float(article["WEIGHT"].replace(",", "."))
+        quantity = float(quantity)
+        total = round(weight * quantity, 3)
+
+        normalized = {
+            "DESCL1": article["DescriptionENG"],
+            "WEIGHT": weight,
+            "TOTAL": total,
+            "MATERIAL": article["MATERIAL"],
+            "NORM": article["NORM"],
+            "STANDARD": article["STANDARD"],
+            "STYPE": article["STYPE"],
+            "TYPE": article["TYPE"],
+            "DIAMETER": article["DIAMETER"],
+        }
+
+        if block_type == "FASTENERS":
+            normalized.update({
+                "UNI": "N.",
+                "DIAMETER": article["DIAMETER"],
+            })
+
+        if block_type == "GASKET":
+            normalized.update({
+               "UNI": article["Unit"],
+            })
+
+        if block_type == "RAW+INSULATION":
+            normalized.update({
+               "UNI": article["Unit"],
+            })
+        
+        return normalized
         
         
