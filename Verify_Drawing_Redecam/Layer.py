@@ -21,7 +21,6 @@ class LayerList:
         self.add_layer("REDECAM_FITTING+OTHERS", True, False, False, 6, "Continuous", -3)
         self.add_layer("REDECAM_GASKET", True, False, False, 7, "Continuous", -3)
         self.add_layer("REDECAM_RAW+INSULATION", True, False, False, 1, "Continuous", -3)
-        self.add_layer("REDECAM_Squadratura_Cartiglio", True, False, False, 1, "Continuous", -3)
         self.add_layer("REDECAM_STEELWORK", True, False, False, 2, "Continuous", -3)
         self.add_layer("REDECAM_TITLE-BLOCK", True, False, False, 1, "Continuous", -3)
         self.add_layer("SOTTILI", True, False, False, 1, "Continuous", 20)
