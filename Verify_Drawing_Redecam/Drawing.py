@@ -37,6 +37,7 @@ class Drawing:
         self.gaskets_blocks = self.get_block_info("REDECAM_GASKET")
         self.insulation_blocks = self.get_block_info("REDECAM_RAW+INSULATION")
         self.fittings_blocks = self.get_block_info("REDECAM_FITTINGS+OTHERS")
+        self.revision_indication_blocks = self.get_block_info("REV")
         
 
         if self.has_multiple_blocks():
@@ -66,6 +67,7 @@ class Drawing:
         self.check_notes_material()
         self.check_different_project_code()
         self.check_commercial_blocks()
+        self.check_revision_indication_blocks()
 
         self.message = self.error_drawing.get_error_messages()
     
@@ -762,3 +764,9 @@ class Drawing:
                         )
 
                         continue
+
+    # Função para verificar os blocos de Indicação de Revisão
+    def check_revision_indication_blocks(self):
+        for block in self.revision_indication_blocks:
+            if int(block["REV"]["value"]) != int(self.file_drawing_code_separate[-1]):
+                self.error_drawing.er40["boolean_value"] = True
