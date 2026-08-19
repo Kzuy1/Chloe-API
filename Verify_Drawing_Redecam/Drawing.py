@@ -5,6 +5,7 @@ from Verify_Drawing_Redecam.OldLayers import old_layers
 from infra.DBArticles import DBArticoli
 from utils.file_utils import save_in_temp_folder, convert_file
 from ezdxf.entities.dimstyleoverride import DimStyleOverride
+from ezdxf import revcloud
 from datetime import datetime
 from collections import defaultdict
 import ezdxf
@@ -68,6 +69,7 @@ class Drawing:
         self.check_different_project_code()
         self.check_commercial_blocks()
         self.check_revision_indication_blocks()
+        self.check_revision_clouds()
 
         self.message = self.error_drawing.get_error_messages()
     
@@ -770,3 +772,39 @@ class Drawing:
         for block in self.revision_indication_blocks:
             if int(block["REV"]["value"]) != int(self.file_drawing_code_separate[-1]):
                 self.error_drawing.er40["boolean_value"] = True
+
+    # Função para verificar Nuvens de Revisão
+    def check_revision_clouds(self):
+        revision_cloud_layer = "NOTE"
+        tolerance = 0.0001 
+        expected_arc_length = self.subtitle_block['x_scale'] * 2
+        x= 0
+
+
+        for polyline in self.msp_dxf.query("LWPOLYLINE"):
+            if not revcloud.is_revcloud(polyline): 
+                continue
+
+            if self.error_drawing.er41["boolean_value"] and self.error_drawing.er42["boolean_value"]:
+                break
+
+            if (
+                polyline.dxf.layer.upper() != revision_cloud_layer 
+                and self.error_drawing.er41["boolean_value"] != True
+            ):
+                self.error_drawing.er41["boolean_value"] = True
+                self.error_drawing.er41["description"] += f"\t\t\t{polyline.dxf.layer}\n"
+                
+            if self.error_drawing.er42["boolean_value"] != True:
+                xdata = polyline.get_xdata("RevcloudProps")
+
+                if xdata:
+                    arc_length = next((value for code, value in xdata if code == 1040), None)
+
+                    if arc_length is None:
+                        continue
+
+                    if not math.isclose(expected_arc_length, arc_length, abs_tol=tolerance):
+                        self.error_drawing.er42["boolean_value"] = True
+            
+            
