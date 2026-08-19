@@ -42,6 +42,9 @@ class ErrorDrawing:
         self.er37 = {'description': ':lady_beetle: Error 37: Bloco de Legenda com descrição incorreta no TIT-3 para o tipo de documento.\n','boolean_value': False }
         self.er38 = {'description': ':lady_beetle: Error 38: Bloco comercial com código não prenchido ou incorreto:\n','boolean_value': False }
         self.er39 = {'description': ':lady_beetle: Error 39: Bloco comercial preenchido incorretamente:\n','boolean_value': False }
+        self.er40 = {'description': ':lady_beetle: Error 40: Bloco de Indicação de Revisão divergente da revisão esperada.','boolean_value': False }
+        self.er41 = {'description': ':lady_beetle: Error 41: Nuvem de Revisão não está na camada `NOTE`. Camadas encontradas:\n','boolean_value': False }
+        self.er42 = {'description': ':lady_beetle: Error 42: Nuvem de Revisão com comprimento do arco incorreto.','boolean_value': False }
         self.al01 = {'description': ':lady_beetle: Alert 01: Quantidade de peças diverge do número de Marcas no desenho:\n','boolean_value': False }
 
     # self.erXX = {'description': ':lady_beetle: Error XX: XXXXXXXXX','boolean_value': False }
