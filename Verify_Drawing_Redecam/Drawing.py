@@ -765,7 +765,7 @@ class Drawing:
                             f"DB=`{value}`\n"
                         )
 
-                        continue
+                        break
 
     # Função para verificar os blocos de Indicação de Revisão
     def check_revision_indication_blocks(self):
