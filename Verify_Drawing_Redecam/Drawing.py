@@ -778,8 +778,6 @@ class Drawing:
         revision_cloud_layer = "NOTE"
         tolerance = 0.0001 
         expected_arc_length = self.subtitle_block['x_scale'] * 2
-        x= 0
-
 
         for polyline in self.msp_dxf.query("LWPOLYLINE"):
             if not revcloud.is_revcloud(polyline): 
