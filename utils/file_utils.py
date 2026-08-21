@@ -2,18 +2,17 @@ import os
 import subprocess
 from pathlib import Path
 import shutil
+import uuid
 
-def clear_temp(directory):
-    for root, dirs, files in os.walk(directory, topdown=False):
-        for name in files:
-            os.remove(os.path.join(root, name))
-        for name in dirs:
-            os.rmdir(os.path.join(root, name))
-    os.rmdir(directory)
+def clear_temp(file_path):
+    temp_dir = os.path.dirname(file_path)
+
+    if os.path.isdir(temp_dir):
+        shutil.rmtree(temp_dir)
 
 def save_in_temp_folder(file, base_file):
     base_dir = os.path.dirname(os.path.abspath(base_file))
-    temp_dir = os.path.join(base_dir, "temp")
+    temp_dir = os.path.join(base_dir, "temp", str(uuid.uuid4()))
     os.makedirs(temp_dir, exist_ok=True)
 
     if hasattr(file, "save"):

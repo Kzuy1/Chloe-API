@@ -7,6 +7,7 @@ class ListToDxf:
   def __init__(self, file):
     self.full_path = save_in_temp_folder(file, __file__)
     self.base_dir = os.path.dirname(os.path.abspath(__file__))
+    self.temp_dir = os.path.dirname(self.full_path)
     self.file_name = os.path.splitext(os.path.basename(self.full_path))[0]
     self.workbook = openpyxl.load_workbook(self.full_path, data_only=True)
     self.drawn_list = self.read_sheets_names()
@@ -90,8 +91,7 @@ class ListToDxf:
     
   # Função para copiar o Template e criar um novo arquivo para Edição
   def create_DXF_file(self):
-    output_dir = os.path.join(self.base_dir, "temp")
-    os.makedirs(output_dir, exist_ok=True)
+    output_dir = os.path.join(self.temp_dir)
     target_dxf_path = os.path.join(output_dir, self.file_name + ".dxf")
 
     # Caso arquivo exista ele irá remover
