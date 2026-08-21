@@ -27,19 +27,17 @@ def upload_file():
     import_type = request.form.get('import_type')
 
     if file:
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        temp_dir = os.path.join(base_dir, 'Excel_To_DXF', 'temp')
-        
         import_data = None
         if import_type == 'redecam':
-            temp_dir = os.path.join(base_dir, 'Excel_To_DXF_Redecam', 'temp')
             import_data = ListToDxfRedecam(file)
         else:
             import_data = ListToDxf(file)
-    
+
+        file_path = import_data.full_path
+
         @after_this_request
         def cleanup(response):
-            clear_temp(temp_dir)
+            clear_temp(file_path)
             return response
 
         return send_file(import_data.target_dxf_path, as_attachment=True, download_name=import_data.file_name + ".dxf", mimetype='application/dxf')
@@ -53,24 +51,21 @@ def routeVerifyDrawing():
     verification_type = request.form['verification_type']
 
     if file:
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        temp_dir = os.path.join(base_dir, 'Verify_Drawing', 'temp')
-
         verify_drawing = None
         if verification_type == 'redecam':
-            temp_dir = os.path.join(base_dir, 'Verify_Drawing_Redecam', 'temp')
             verify_drawing = DrawingRedecam(file, data_issue)
         else:
             verify_drawing = Drawing(file, data_issue)
         result = verify_drawing.message
 
+        file_path = verify_drawing.full_path
 
         del verify_drawing
         gc.collect()
 
         @after_this_request
         def cleanup(response):
-            clear_temp(temp_dir)
+            clear_temp(file_path)
             return response
 
         return make_response(result, 200, {'Content-Type': 'text/plain'})
@@ -118,7 +113,7 @@ loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 loop.set_exception_handler(unhandled_rejection_handler)
 
-# Opção para testes
+# # Opção para testes
 # if __name__ == '__main__':
 #     app.run(host='0.0.0.0', port=3000, debug=True)
 
