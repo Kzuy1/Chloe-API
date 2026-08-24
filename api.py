@@ -7,7 +7,7 @@ from Verify_Drawing_Redecam.Drawing import Drawing as DrawingRedecam
 from Importa_Part_Attributes_Excel_To_DXF.importAttributesToDxf import import_attributes_from_xlsx
 from infra.DBArticles import DBArticoli
 from infra.DBArticles import DBArticoli
-from utils.file_utils import clear_temp
+from utils.file_utils import clear_temp, save_in_temp_folder
 from dotenv import load_dotenv
 import os
 import asyncio
@@ -26,23 +26,21 @@ def upload_file():
     file = request.files.get('file')
     import_type = request.form.get('import_type')
 
-    if file:
+    if not file:
+        return jsonify({'message': 'Nenhum arquivo enviado.'}), 400
+
+    full_path, temp_dir = save_in_temp_folder(file, 'temp')
+
+    try:
         import_data = None
         if import_type == 'redecam':
-            import_data = ListToDxfRedecam(file)
+            import_data = ListToDxfRedecam(full_path, temp_dir)
         else:
-            import_data = ListToDxf(file)
-
-        file_path = import_data.full_path
-
-        @after_this_request
-        def cleanup(response):
-            clear_temp(file_path)
-            return response
-
+            import_data = ListToDxf(full_path, temp_dir)
+        
         return send_file(import_data.target_dxf_path, as_attachment=True, download_name=import_data.file_name + ".dxf", mimetype='application/dxf')
-    else:
-        return jsonify({'message': 'Nenhum arquivo enviado.'}), 400
+    finally:
+        clear_temp(temp_dir)
 
 @app.route('/verify-drawing', methods=['POST'])
 def routeVerifyDrawing():
@@ -50,27 +48,25 @@ def routeVerifyDrawing():
     data_issue = request.form['data']
     verification_type = request.form['verification_type']
 
-    if file:
+    if not file:
+        return jsonify({'message': 'Nenhum arquivo enviado.'}), 400
+
+    full_path, temp_dir = save_in_temp_folder(file, 'temp')
+
+    try:
         verify_drawing = None
         if verification_type == 'redecam':
-            verify_drawing = DrawingRedecam(file, data_issue)
+            verify_drawing = DrawingRedecam(full_path, data_issue)
         else:
-            verify_drawing = Drawing(file, data_issue)
+            verify_drawing = Drawing(full_path, data_issue)
         result = verify_drawing.message
-
-        file_path = verify_drawing.full_path
 
         del verify_drawing
         gc.collect()
 
-        @after_this_request
-        def cleanup(response):
-            clear_temp(file_path)
-            return response
-
         return make_response(result, 200, {'Content-Type': 'text/plain'})
-    else:
-        return jsonify({'message': 'Nenhum arquivo enviado.'}), 400
+    finally:
+        clear_temp(temp_dir)
     
 @app.route('/add-attributes', methods=['POST'])
 def routeAddAttributes():

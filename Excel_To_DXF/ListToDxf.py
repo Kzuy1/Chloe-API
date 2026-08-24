@@ -4,10 +4,10 @@ import openpyxl
 import os
 
 class ListToDxf:
-  def __init__(self, file):
-    self.full_path = save_in_temp_folder(file, __file__)
+  def __init__(self, full_path, temp_dir):
+    self.full_path = full_path
+    self.temp_dir = temp_dir
     self.base_dir = os.path.dirname(os.path.abspath(__file__))
-    self.temp_dir = os.path.dirname(self.full_path)
     self.file_name = os.path.splitext(os.path.basename(self.full_path))[0]
     self.workbook = openpyxl.load_workbook(self.full_path, data_only=True)
     self.drawn_list = self.read_sheets_names()
