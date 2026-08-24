@@ -4,9 +4,7 @@ from pathlib import Path
 import shutil
 import uuid
 
-def clear_temp(file_path):
-    temp_dir = os.path.dirname(file_path)
-
+def clear_temp(temp_dir):
     if os.path.isdir(temp_dir):
         shutil.rmtree(temp_dir)
 
@@ -23,7 +21,7 @@ def save_in_temp_folder(file, base_file):
         full_path = os.path.join(temp_dir, source.name)
         shutil.copy2(source, full_path)
 
-    return full_path
+    return full_path, temp_dir
 
 def convert_file(input_path, output_extension="dxf", cad_version="ACAD2010"):
     if not os.path.exists(input_path):

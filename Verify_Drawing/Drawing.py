@@ -2,7 +2,7 @@ from Verify_Drawing.ErrorDrawing import ErrorDrawing
 from Verify_Drawing.Layer import LayerList
 from Verify_Drawing.Blocks import BlockList, Entity, BlockScaleError
 from Verify_Drawing.OldLayers import old_layers
-from utils.file_utils import save_in_temp_folder, convert_file
+from utils.file_utils import convert_file
 from datetime import datetime
 import ezdxf
 import os
@@ -10,10 +10,10 @@ import re
 import math
 
 class Drawing:
-    def __init__(self, file, data_issue = None):
+    def __init__(self, full_path, data_issue = None):
         self.error_drawing = ErrorDrawing()
         self.data_issue = data_issue
-        self.full_path = save_in_temp_folder(file, __file__)
+        self.full_path = full_path
         self.convert_to_dxt()
         self.file_drawing_code = self.get_drawing_code()
         self.file_drawing_code_separate = self.get_drawing_code_separate()
