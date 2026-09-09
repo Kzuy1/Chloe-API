@@ -152,7 +152,7 @@ class ListToDxf:
       values = {
         "MARK": part.tag,
         "RM": "0",
-        "CODE": "TAG-CTRL+F-" + part.tag,
+        "CODE": "TAG-" + part.tag,
         "TYPE": "STEELWORK",
         "REF-DWG": "REFERENCE DRAWING",
         "WEIGHT": part.unit_weight,
