@@ -221,7 +221,7 @@ class ListToDxf:
       (self.block_offset_x + 106, self.block_offset_y - 2, 0), 
       (self.block_offset_x + 106, self.block_offset_y + 5, 0)
     ]
-    self.addTagDraw("TAG-CTRL+F-" + drawing_code, (self.block_offset_x + 143, self.block_offset_y, 0), rectanglePointsTag)
+    self.addTagDraw("TAG-" + drawing_code, (self.block_offset_x + 143, self.block_offset_y, 0), rectanglePointsTag)
     self.block_offset_y += 5
 
     if part_list[0].quantity > 1:
