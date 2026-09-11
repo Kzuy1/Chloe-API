@@ -10,7 +10,7 @@ class ErrorDrawing:
         self.er05 = {'description': ':lady_beetle: Error 05: A Revisão de Pares do Bloco de Revisão 0 deve ser igual ao Bloco de Título.','boolean_value': False }
         self.er06 = {'description': ':lady_beetle: Error 06: LTScale está diferente da metade da Escala do Desenho.','boolean_value': False }
         self.er07 = {'description': ':lady_beetle: Error 07: Camadas obsoletas presentes no desenho:\n','boolean_value': False }
-        self.er08 = {'description': ':lady_beetle: Error 08: Linha de Chamada não está na camada QUOTE.','boolean_value': False }
+        self.er08 = {'description': ':lady_beetle: Error 08: Linhas de Chamada ou Cotas não estão na camada `QUOTE`.','boolean_value': False }
         self.er09 = {'description': ':lady_beetle: Error 09: Lista de blocos duplicados identificados no desenho:','boolean_value': False }
         self.er10 = {'description': ':lady_beetle: Error 10: Bloco de Revisão 0 está com a Data diferente da Data de Emissão no Bloco de Legenda.','boolean_value': False }
         self.er11 = {'description': ':lady_beetle: Error 11: Bloco de Revisão atual está com a Data diferente da Data de Revisão no Bloco de Legenda.','boolean_value': False }

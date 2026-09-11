@@ -52,7 +52,7 @@ class Drawing:
         self.check_revision_block()
         self.check_part_block()
         self.check_line_scale_factor()
-        self.check_leader()
+        self.check_dimensions()
         self.check_mark()
         self.check_dimensions_indicate()
         self.check_format_block_at_origin()
@@ -390,10 +390,10 @@ class Drawing:
         if abs(self.subtitle_block['x_scale']/2 - ltscale) > 0.0001  :
             self.error_drawing.er06['boolean_value'] = True
 
-    # Função para verificar as linhas de chamadas
-    def check_leader(self):
-        for leader in self.msp_dxf.query('LEADER'):
-            if leader.dxf.layer != 'QUOTE':
+    # Função para verificar as linhas de chamadas e Dimensões
+    def check_dimensions(self):
+        for entity in self.msp_dxf.query('DIMENSION LEADER'):
+            if entity.dxf.layer != 'QUOTE':
                 self.error_drawing.er08['boolean_value'] = True
                 return
     
