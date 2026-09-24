@@ -34,20 +34,38 @@ class ErrorDrawing:
     # self.edXX = {'description': ':lady_beetle: [Error EDXX:](<>) XXXXXXXXX','boolean_value': False }
         
     # Compila as mensagens de erros numa única só string
+    def split_message(self, message, limit):
+        messages = []
+
+        while len(message) > limit:
+            split_index = message.rfind("\n", 0, limit)
+
+            if split_index <= 0:
+                split_index = limit
+            else:
+                split_index += 1
+
+            messages.append(message[:split_index])
+            message = message[split_index:]
+
+        if message:
+            messages.append(message)
+
+        return messages
+
+
     def get_error_messages(self):
-        string_error = []
-        string_message = ''
+        discord_limit = int(os.getenv("DISCORD_LIMIT_PATH_MESSAGE"))
 
-        for error in self.__dict__.items():
-            if error[1]['boolean_value']:
-                message_error = error[1]['description']
-                if len(message_error) > int(os.getenv("DISCORD_LIMIT_PATH_MESSAGE")):
-                    string_error.append(string_message)
-                    string_message = message_error
-                else:
-                    string_message += message_error + "\n"
-                    
-        if string_message:  # Adiciona a última mensagem apenas se não estiver vazia
-            string_error.append(string_message)
+        full_message = ""
 
-        return string_error if string_error else []
+        for error in self.__dict__.values():
+            if not error["boolean_value"]:
+                continue
+
+            full_message += error["description"] + "\n"
+
+        if not full_message:
+            return []
+
+        return self.split_message(full_message, discord_limit)
