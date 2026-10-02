@@ -64,6 +64,8 @@ class BlockList:
         self.add_block('EMB_LISTA_DE_MATERIAL_INFO_v0.2', 'Bloco de Material das Informações')
         self.add_block('EMB_LISTA_DE_MATERIAL_DESCRITIVO_v0.2', 'Bloco de Material das Descrições')
         self.add_block('1418104', 'Bloco de Indicação de Parafuso para outro desenho')
+        self.add_block('WELDING_FIX-FLANGE', 'Bloco de Solda para Flange Fixa')
+        self.add_block('WELDING_FREE-FLANGES', 'Bloco de Solda para Flange Livre')
 
     def add_list_old_blocks_check_by_entity(self): 
         self.add_block(name='SIMBOLO-SOLDA-EM-MEIO-V', description='Bloco de Símbolo de Solda em Meio V', entity=Entity(dxftype='LINE', color = ACI.MAGENTA))
@@ -117,8 +119,6 @@ class BlockList:
         self.add_block(name='WELDINGS_ENG-ITA', description='Bloco de Solda', entity=Entity(dxftype='TEXT', layer='0', text_value='PERFORM CONTINUOUS WELDING, UNLESS OTHERWISE INDICATED'))
         self.add_block(name='WELDINGS_ENG-POR', description='Bloco de Solda', entity=Entity(dxftype='TEXT', layer='0', text_value='PERFORM CONTINUOUS WELDING, UNLESS OTHERWISE INDICATED'))
         self.add_block(name='WELDINGS_ENG-RUS', description='Bloco de Solda', entity=Entity(dxftype='TEXT', layer='0', text_value='PERFORM CONTINUOUS WELDING, UNLESS OTHERWISE INDICATED'))
-        self.add_block(name='WELDING_FIX-FLANGE', description='Bloco de Solda para Flange Fixa', entity=Entity(dxftype='LINE', layer='NASCOSTE'))
-        self.add_block(name='WELDING_FREE-FLANGES', description='Bloco de Solda para Flange Livre', entity=Entity(dxftype='LINE', layer='NASCOSTE'))
         
         # Block in Template PRO FILE 01A, but dont have older version. Reminder to Check in new versions template.
         # 12175727
@@ -136,6 +136,19 @@ class BlockList:
         # TEARDROP SHEET
         # TOP_BOM
         # TORQUE TABLE
+        # 08355223
+        # 0835586
+        # 11492287
+        # INDEX_STEELWORK_ENG+ESP
+        # INDEX_STEELWORK_ENG+FRA
+        # INDEX_STEELWORK_ENG+ITA
+        # REDECAM_FASTENERS_BI
+        # REDECAM_FITTINGS+OTHERS_BI
+        # REDECAM_GASKET_BI
+        # REDECAM_RAW+INSULATION_BI
+        # REDECAM_STEELWORK_BI
+        # WELDING_FIX-FLANGE_new
+        # WELDING_FREE-FLANGES_new
 
     def add_list_blocks_check_scale(self):
         self.add_block(name='SIMBOLO-SOLDA-AO-REDOR', description='Bloco de Símbolo de Solda ao Redor', allowed_scales=[1.0], allow_mirrored=True)
@@ -206,8 +219,8 @@ class BlockList:
         self.add_block(name='WELDINGS_ENG-ITA', description='Bloco de Solda', allowed_scales=[1.0], allow_mirrored=False)
         self.add_block(name='WELDINGS_ENG-POR', description='Bloco de Solda', allowed_scales=[1.0], allow_mirrored=False)
         self.add_block(name='WELDINGS_ENG-RUS', description='Bloco de Solda', allowed_scales=[1.0], allow_mirrored=False)
-        self.add_block(name='WELDING_FIX-FLANGE', description='Bloco de Solda para Flange Fixa', allowed_scales=[1.0], allow_mirrored=False)
-        self.add_block(name='WELDING_FREE-FLANGES', description='Bloco de Solda para Flange Livre', allowed_scales=[1.0], allow_mirrored=False)
+        self.add_block(name='WELDING_FIX-FLANGE_new', description='Bloco de Solda para Flange Fixa', allowed_scales=[1.0], allow_mirrored=False)
+        self.add_block(name='WELDING_FREE-FLANGES_new', description='Bloco de Solda para Flange Livre', allowed_scales=[1.0], allow_mirrored=False)
 
         # self.add_block(name='', description='', allowed_scales=[1.0], allow_mirrored=False)
 

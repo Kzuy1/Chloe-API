@@ -1,57 +1,143 @@
 import ezdxf
-import hashlib
+from collections import Counter
+
 
 def normalize_value(value, precision=4):
     if isinstance(value, float):
         return round(value, precision)
+
     elif isinstance(value, (list, tuple)):
-        return tuple(normalize_value(v, precision) for v in value)
+        return tuple(
+            normalize_value(v, precision)
+            for v in value
+        )
+
     return value
 
 
-def entity_to_string(e, precision=4):
-    attribs = e.dxfattribs()
-    normalized = {}
+def entity_to_key(entity, precision=4):
+    attribs = entity.dxfattribs()
 
     IGNORED_ATTRS = {"handle", "owner"}
 
-    for k, v in attribs.items():
-        if k in IGNORED_ATTRS:
-            continue
-        normalized[k] = normalize_value(v, precision)
+    normalized = {}
 
-    items_sorted = sorted(normalized.items())
-    return f"{e.dxftype()}|{items_sorted}"
+    for key, value in attribs.items():
+        if key in IGNORED_ATTRS:
+            continue
+
+        normalized[key] = normalize_value(value, precision)
+
+    items_sorted = tuple(sorted(normalized.items()))
+
+    return entity.dxftype(), items_sorted
 
 
 def block_signature(block):
-    entity_strings = [entity_to_string(e) for e in block]
-    entity_strings.sort()
-    full_string = "\n".join(entity_strings)
-    return hashlib.md5(full_string.encode()).hexdigest()
+    entities = [
+        entity_to_key(entity)
+        for entity in block
+    ]
+
+    return Counter(entities)
+
+
+def get_block_names(doc):
+    return {
+        block.name
+        for block in doc.blocks
+        if not block.name.startswith("*")
+    }
+
+
+def compare_blocks(doc1, doc2):
+
+    blocks1 = get_block_names(doc1)
+    blocks2 = get_block_names(doc2)
+
+    # =========================
+    # EXISTÊNCIA DOS BLOCOS
+    # =========================
+
+    removed = blocks1 - blocks2
+    added = blocks2 - blocks1
+
+    common = blocks1 & blocks2
+
+    # =========================
+    # CONTEÚDO DOS BLOCOS
+    # =========================
+
+    modified = set()
+    unchanged = set()
+
+    for block_name in common:
+
+        block1 = doc1.blocks.get(block_name)
+        block2 = doc2.blocks.get(block_name)
+
+        signature1 = block_signature(block1)
+        signature2 = block_signature(block2)
+
+        if signature1 == signature2:
+            unchanged.add(block_name)
+        else:
+            modified.add(block_name)
+
+    return removed, added, modified, unchanged
 
 
 # =========================
 # USO
 # =========================
 
-BLOCK_NAME = ""
+FILE_1 = ""
+FILE_2 = ""
 
-doc1 = ezdxf.readfile("")
-doc2 = ezdxf.readfile("")
+doc1 = ezdxf.readfile(FILE_1)
+doc2 = ezdxf.readfile(FILE_2)
 
-block1 = doc1.blocks.get(BLOCK_NAME)
-block2 = doc2.blocks.get(BLOCK_NAME)
+removed, added, modified, unchanged = compare_blocks(
+    doc1,
+    doc2
+)
 
-if block1 is None:
-    print(f"Bloco '{BLOCK_NAME}' não existe no arquivo 1")
-elif block2 is None:
-    print(f"Bloco '{BLOCK_NAME}' não existe no arquivo 2")
+
+# =========================
+# RESULTADO
+# =========================
+
+print("\n🔴 BLOCOS REMOVIDOS")
+
+if removed:
+    for block_name in sorted(removed):
+        print(f"  - {block_name}")
 else:
-    sig1 = block_signature(block1)
-    sig2 = block_signature(block2)
+    print("  Nenhum")
 
-    if sig1 == sig2:
-        print(f"Bloco '{BLOCK_NAME}' é idêntico")
-    else:
-        print(f"Bloco '{BLOCK_NAME}' foi MODIFICADOXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+
+print("\n🟢 BLOCOS ADICIONADOS")
+
+if added:
+    for block_name in sorted(added):
+        print(f"  - {block_name}")
+else:
+    print("  Nenhum")
+
+
+print("\n🟡 BLOCOS MODIFICADOS")
+
+if modified:
+    for block_name in sorted(modified):
+        print(f"  - {block_name}")
+else:
+    print("  Nenhum")
+
+
+print("\n⚪ BLOCOS SEM ALTERAÇÃO")
+
+if unchanged:
+    for block_name in sorted(unchanged):
+        print(f"  - {block_name}")
+else:
+    print("  Nenhum")
