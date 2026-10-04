@@ -8,6 +8,10 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     libffi-dev \
     libgl1 \
+    libopengl0 \
+    libegl1 \
+    libglib2.0-0 \
+    libdbus-1-3 \
     libxrender1 \
     libxext6 \
     libxkbcommon0 \
@@ -37,7 +41,7 @@ RUN apt-get update && apt-get install -y \
 
 RUN pip install --upgrade pip
 
-RUN wget "https://www.opendesign.com/guestfiles/get?filename=ODAFileConverter_QT6_lnxX64_8.3dll_27.1.deb" -O oda.deb \
+RUN wget "https://drive.usercontent.google.com/download?id=1QjwvKHJ0ismASANbF5Xd37j-gMsaaolQ&export=download&confirm=t" -O oda.deb \
     && apt-get install -y ./oda.deb \
     && rm oda.deb \
     && ln -s /usr/bin/ODAFileConverter_26.12.0.0/ODAFileConverter /usr/local/bin/ODAFileConverter
