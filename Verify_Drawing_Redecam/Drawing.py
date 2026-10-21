@@ -144,6 +144,9 @@ class Drawing:
                     height = attrib.dxf.height
                     width_factor = attrib.dxf.width
 
+                    if tag in ('TOTAL', 'WEIGHT') and tag in block_info and height <= block_info[tag]['height']:
+                        continue
+
                     block_info[tag] = {'value': value, 'height': height, 'width_factor': width_factor}
                 
                 block_info['x_scale'] = insert.get_dxf_attrib('xscale') or 1
