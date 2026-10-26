@@ -4,6 +4,8 @@ from pathlib import Path
 import shutil
 import uuid
 
+ODA_TIMEOUT_SECONDS = 120
+
 def clear_temp(temp_dir):
     if os.path.isdir(temp_dir):
         shutil.rmtree(temp_dir)
@@ -33,6 +35,7 @@ def convert_file(input_path, output_extension="dxf", cad_version="ACAD2010"):
     output_dir = os.path.join(input_dir, "out")
     os.makedirs(output_dir, exist_ok=True)
 
+    # O conversor é baseado em Qt e precisa de um display; xvfb-run fornece um virtual
     cmd = [
         "xvfb-run",
         "-a",
@@ -51,10 +54,13 @@ def convert_file(input_path, output_extension="dxf", cad_version="ACAD2010"):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
-            check=True
+            check=True,
+            timeout=ODA_TIMEOUT_SECONDS
         )
+    except subprocess.TimeoutExpired:
+        raise RuntimeError(f"Tempo excedido ao converter (>{ODA_TIMEOUT_SECONDS}s).")
     except subprocess.CalledProcessError as e:
-        raise RuntimeError(f"Erro ao converter:\n{e.stderr}")
+        raise RuntimeError(f"Erro ao converter:/n{e.stderr}")
 
     base_name = os.path.splitext(os.path.basename(input_path))[0]
     converted_file = os.path.join(output_dir, base_name + "." + output_extension.lower())

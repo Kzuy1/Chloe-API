@@ -8,6 +8,7 @@ from Importa_Part_Attributes_Excel_To_DXF.importAttributesToDxf import import_at
 from infra.DBArticles import DBArticoli
 from infra.DBArticles import DBArticoli
 from utils.file_utils import clear_temp, save_in_temp_folder
+from utils.verify_jobs import submit_job, get_job, QueueFullError
 from dotenv import load_dotenv
 import os
 import asyncio
@@ -44,7 +45,7 @@ def upload_file():
 
 @app.route('/verify-drawing', methods=['POST'])
 def routeVerifyDrawing():
-    file = request.files['file']
+    file = request.files.get('file')
     data_issue = request.form['data']
     verification_type = request.form['verification_type']
 
@@ -54,20 +55,24 @@ def routeVerifyDrawing():
     full_path, temp_dir = save_in_temp_folder(file, 'temp')
 
     try:
-        verify_drawing = None
-        if verification_type == 'redecam':
-            verify_drawing = DrawingRedecam(full_path, data_issue)
-        else:
-            verify_drawing = Drawing(full_path, data_issue)
-        result = verify_drawing.message
-
-        del verify_drawing
-        gc.collect()
-
-        return make_response(result, 200, {'Content-Type': 'text/plain'})
-    finally:
+        job_id = submit_job(full_path, temp_dir, data_issue, verification_type)
+    except QueueFullError:
         clear_temp(temp_dir)
-    
+        return jsonify({'message': 'Fila cheia, tente novamente em instantes.'}), 503
+    except Exception:
+        clear_temp(temp_dir)
+        raise
+
+    return jsonify({'job_id': job_id}), 202
+
+@app.route('/verify-drawing/<job_id>', methods=['GET'])
+def routeVerifyDrawingStatus(job_id):
+    job = get_job(job_id)
+    if job is None:
+        return jsonify({'message': 'Job não encontrado ou expirado.'}), 404
+
+    return jsonify(job), 200
+
 @app.route('/add-attributes', methods=['POST'])
 def routeAddAttributes():
     xlsx_file = request.files.get('xlsx')
