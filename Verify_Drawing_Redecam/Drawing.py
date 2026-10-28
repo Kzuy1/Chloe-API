@@ -328,7 +328,7 @@ class Drawing:
                 self.error_drawing.er16['boolean_value'] = True
 
             # Verifica se código da peça está correto
-            expected_code_part = self.subtitle_block['COMBOFIELD1']['value'] + '-' + part_block["MARK"]['value']
+            expected_code_part = self.subtitle_block["PRN"]["value"] + self.subtitle_block["LIN"]["value"] + '-' + self.subtitle_block['ITE']["value"] + '-' + part_block["MARK"]['value']
             if not part_block["CODE"]['value'].startswith(expected_code_part):
                 self.error_drawing.er19['boolean_value'] = True
 
