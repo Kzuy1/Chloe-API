@@ -80,15 +80,16 @@ class DBArticoli:
                 "DIAMETER": article["DIAMETER"] or "",
             }
 
-        if block_type in ("GASKET", "RAW+INSULATION", "FITTINGS+OTHERS"):
+        if block_type == "GASKET":
             weight = (
                 0
                 if article["Unitweight"] is None
                 else float(str(article["Unitweight"]).replace(",", "."))
             )
 
-            normalized = {
+            return {
                 "DESCL1": article["DescriptionENG"],
+                "UNI": article["Unit"] or "",
                 "WEIGHT": weight,
                 "TOTAL": round(weight * quantity, 3),
                 "MATERIAL": article["MATERIAL"] or "",
@@ -98,10 +99,42 @@ class DBArticoli:
                 "TYPE": article["TYPE"] or "",
             }
 
-            if block_type in ("GASKET", "RAW+INSULATION"):
-                normalized["UNI"] = article["Unit"] or ""
+        if block_type == "RAW+INSULATION":
+            weight = (
+                0
+                if article["Unitweight"] is None
+                else float(str(article["Unitweight"]).replace(",", "."))
+            )
 
-            return normalized
+            return {
+                "DESCL1": article["DescriptionENG"],
+                "UNI": article["Unit"] or "",
+                "WEIGHT": weight,
+                "TOTAL": round(weight * quantity, 3),
+                "MATERIAL": "",
+                "NORM": "",
+                "STANDARD": article["Standard"] or "",
+                "STYPE": article["STYPE"] or "",
+                "TYPE": article["TYPE"] or "",
+            }
+
+        if block_type == "FITTINGS+OTHERS":
+            weight = (
+                0
+                if article["Unitweight"] is None
+                else float(str(article["Unitweight"]).replace(",", "."))
+            )
+
+            return {
+                "DESCL1": article["DescriptionENG"],
+                "WEIGHT": weight,
+                "TOTAL": round(weight * quantity, 3),
+                "MATERIAL": "",
+                "NORM": "",
+                "STANDARD": article["Standard"] or "",
+                "STYPE": article["STYPE"] or "",
+                "TYPE": article["TYPE"] or "",
+            }
 
         return None
         
