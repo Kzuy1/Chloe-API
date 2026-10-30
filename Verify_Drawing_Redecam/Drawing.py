@@ -667,6 +667,9 @@ class Drawing:
             material = block["MAT"]["value"].strip()
             unit = block["UNI"]["value"]
 
+            if material.upper() == "N/A":
+                continue
+
             if unit == "m²":
                 sheet_material_bom.add(material)
 
