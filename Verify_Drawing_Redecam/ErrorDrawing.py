@@ -45,6 +45,7 @@ class ErrorDrawing:
         self.er40 = {'description': ':lady_beetle: Error 40: Bloco de Indicação de Revisão divergente da revisão esperada.','boolean_value': False }
         self.er41 = {'description': ':lady_beetle: Error 41: Nuvem de Revisão não está na camada `NOTE`. Camadas encontradas:\n','boolean_value': False }
         self.er42 = {'description': ':lady_beetle: Error 42: Nuvem de Revisão com comprimento do arco incorreto.','boolean_value': False }
+        self.er43 = {'description': ':lady_beetle: Error 43: Notas obsoletas presentes no desenho.','boolean_value': False }
         self.al01 = {'description': ':lady_beetle: Alert 01: Quantidade de peças diverge do número de Marcas no desenho:\n','boolean_value': False }
 
     # self.erXX = {'description': ':lady_beetle: Error XX: XXXXXXXXX','boolean_value': False }
