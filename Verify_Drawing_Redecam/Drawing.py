@@ -70,6 +70,7 @@ class Drawing:
         self.check_commercial_blocks()
         self.check_revision_indication_blocks()
         self.check_revision_clouds()
+        self.check_blocks_notes()
 
         self.message = self.error_drawing.get_error_messages()
     
@@ -811,5 +812,11 @@ class Drawing:
 
                     if not math.isclose(expected_arc_length, arc_length, abs_tol=tolerance):
                         self.error_drawing.er42["boolean_value"] = True
-            
-            
+
+    # Verifica se os Blocos de Notas estão presentes no desenho
+    def check_blocks_notes(self):
+        required_blocks = ("15561713", "15553234", "15553443")
+
+        for block_name in required_blocks:
+            if not self._check_block_exists(block_name):
+                self.error_drawing.er43["boolean_value"] = True
