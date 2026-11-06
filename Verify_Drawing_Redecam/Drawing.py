@@ -3,6 +3,7 @@ from Verify_Drawing_Redecam.Layer import LayerList
 from Verify_Drawing_Redecam.Blocks import BlockList, Entity, BlockScaleError
 from Verify_Drawing_Redecam.OldLayers import old_layers
 from infra.DBArticles import DBArticoli
+from infra.DBTitleBlock import DBTitleBlock
 from utils.file_utils import convert_file
 from ezdxf.entities.dimstyleoverride import DimStyleOverride
 from ezdxf import revcloud
@@ -25,6 +26,7 @@ class Drawing:
         self.layer_list = LayerList()
         self.layer_list.add_default_layer()
         self.db_articoli = DBArticoli()
+        self.db_title_block = DBTitleBlock()
         self.subtitle_block = self.get_block_info('REDECAM_TITLE-BLOCK')
         self.revision_blocks = self.get_block_info('REDE-DISTINTA-REVISIONE')
         self.revision_blocks = self.sort_block(self.revision_blocks, 'REV-N')
@@ -203,6 +205,26 @@ class Drawing:
         if not re.match(regex_code, self.file_drawing_code):
             self.error_drawing.er01['boolean_value'] = True
 
+    # Compara CUS, SIT, PRT e EQU do Bloco de Título com o cadastro do projeto
+    def check_title_block_registry(self):
+        expected = self.db_title_block.get_title_block(
+            self.subtitle_block['PRN']['value'],
+            self.subtitle_block['LIN']['value'],
+            self.subtitle_block['ITESIN']['value'],
+        )
+        if expected is None:
+            self.error_drawing.er44['boolean_value'] = True
+            self.error_drawing.er44['description'] += (
+                f"\t\t\tNão foi possível verificar: cadastro não encontrado para "
+            )
+            return
+
+        for field, expected_value in expected.items():
+            found_value = self.subtitle_block[field]['value'].strip()
+            if found_value != expected_value:
+                self.error_drawing.er44['boolean_value'] = True
+                self.error_drawing.er44['description'] += f'\t\t\t{field}: Desenho=`{expected_value}` | DB=`{found_value}`\n'
+
     # Função para verificar as informações do Bloco de Título do Desenho
     def check_subtitle_block(self):
         expected_titles = {
@@ -236,6 +258,8 @@ class Drawing:
                 join_itemsin += '-' + self.subtitle_block['SIN']['value']
             if join_itemsin != self.subtitle_block['ITESIN']['value']:
                 self.error_drawing.er02['boolean_value'] = True
+
+            self.check_title_block_registry()
 
         # Verifica se o TIT-2 e TIT-4 está vazio
         if self.subtitle_block['TIT-2']['value'] != '' or self.subtitle_block['TIT-4']['value'] != '':
