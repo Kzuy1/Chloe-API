@@ -6,7 +6,7 @@ from Verify_Drawing.Drawing import Drawing
 from Verify_Drawing_Redecam.Drawing import Drawing as DrawingRedecam
 from Importa_Part_Attributes_Excel_To_DXF.importAttributesToDxf import import_attributes_from_xlsx
 from infra.DBArticles import DBArticoli
-from infra.DBArticles import DBArticoli
+from infra.DBTitleBlock import DBTitleBlock
 from utils.file_utils import clear_temp, save_in_temp_folder
 from utils.verify_jobs import submit_job, get_job, QueueFullError
 from dotenv import load_dotenv
@@ -99,6 +99,15 @@ def update_article():
 
     return jsonify({
         'message': 'Database updated successfully.'
+    }), 200
+
+@app.route('/update-title-block', methods=['POST'])
+def update_title_block():
+    db_title_block = DBTitleBlock()
+    db_title_block.update_database()
+
+    return jsonify({
+        'message': 'Title block database updated successfully.'
     }), 200
 
 # Erro no Handling
