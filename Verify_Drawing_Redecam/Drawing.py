@@ -36,6 +36,8 @@ class Drawing:
         self.material_blocks = self.get_block_info('BOM')
         self.single_weight_note = self.get_block_info("NOTE-PART-WEIGHT")
         self.weight_breakdown_note = self.get_block_info("NOTE-PARTS-WEIGHT")
+        self.single_weight_insulation_note = self.get_block_info("NOTE-PART-WEIGHT-INSULATION")
+        self.weight_breakdown_insulation_note = self.get_block_info("NOTE-PARTS-WEIGHT-INSULATION")
         self.fasteners_blocks = self.get_block_info("REDECAM_FASTENERS")
         self.gaskets_blocks = self.get_block_info("REDECAM_GASKET")
         self.insulation_blocks = self.get_block_info("REDECAM_RAW+INSULATION")
@@ -334,8 +336,6 @@ class Drawing:
 
     # Função para verficar Blocos de Peças
     def check_part_block(self):
-        sum_weight = 0
-        sum_weight_withou_rock = 0
 
         for part_block in self.part_blocks:
             # Verifica se o Peso está com Vírgula
@@ -356,26 +356,6 @@ class Drawing:
             expected_code_part = self.subtitle_block["PRN"]["value"] + self.subtitle_block["LIN"]["value"] + '-' + self.subtitle_block['ITE']["value"] + '-' + part_block["MARK"]['value']
             if not part_block["CODE"]['value'].startswith(expected_code_part):
                 self.error_drawing.er19['boolean_value'] = True
-
-        #     # Realiza soma do peso total e soma do peso somente das peças de aço.
-        #     sum_weight += part_total_weight
-        #     if not any(keyword in part_block['DESCRICAO']['value'] for keyword in ['ROCHA', 'ROCK']):
-        #         sum_weight_withou_rock += part_total_weight
-
-        # # Verifica se a nota de Peso Total Aprox. está próxima da soma dos pesos dos blocos brancos
-        # for entity in self.msp_dxf:
-        #     if entity.dxftype() == 'TEXT' and entity.dxf.layer == 'TEXTO' and 'kg' in entity.dxf.text and entity.dxf.color == 2:
-        #         compare_weight = sum_weight
-
-        #         if any(keyword in entity.dxf.text for keyword in ['STEELWORK', 'AÇO']):
-        #             compare_weight = sum_weight_withou_rock
-
-        #         total_weight_approx = re.sub(r'\D', '', entity.dxf.text)
-
-        #         if abs(round(compare_weight) - float(total_weight_approx)) > 0.1:
-        #             self.error_drawing.er20['boolean_value'] = True
-        #             self.error_drawing.er20['description'] += f"{round(compare_weight)} kg"
-        #             break
 
     # Função para verificar se todos os Blocos de Peças estão indicados
     def check_part_indicate_quantity(self):
@@ -636,32 +616,76 @@ class Drawing:
         if self.doc_dxf.header["$DIMSTYLE"] not in dimension_defaults:
             self.error_drawing.er31['boolean_value'] = True
     
+    # Função para converter o valor de peso da nota (ex: "12.5 kg") em float
+    def _note_weight(self, note, tag):
+        return float(note[tag]["value"].replace("kg", "").strip())
+
     # Função para verificar os pesos das notas de peças
     def check_notes_weight(self):
         for note in self.weight_breakdown_note:
             note_qty = float(note["PIECES-REQUIRED1"]['value'])
             note_qty2 = float(note["PIECES-REQUIRED2"]['value'])
-            note_weight = float(note["UNIT-WEIGHT"]['value'].replace("kg", "").strip())
-            note_total_weight = float(note["TOTAL-WEIGHT"]['value'].replace("kg", "").strip())
+            note_weight = self._note_weight(note, "UNIT-WEIGHT")
+            note_total_weight = self._note_weight(note, "TOTAL-WEIGHT")
 
             if abs(note_qty * note_weight - note_total_weight) > 0.0001:
                 self.error_drawing.er32['boolean_value'] = True
 
             if note_qty != note_qty2:
                 self.error_drawing.er33['boolean_value'] = True
-        
-        bom_weight_sum = sum(
-            float(block["WEI"]["value"])
-            for block in self.material_blocks
-        )
+
+        for note in self.weight_breakdown_insulation_note:
+            note_qty = float(note["PIECES-REQUIRED1"]['value'])
+            note_qty2 = float(note["PIECES-REQUIRED2"]['value'])
+            note_qty3 = float(note["PIECES-REQUIRED3"]['value'])
+
+            for unit_tag, total_tag in (
+                ("UNIT-WEIGHT-STEELWORK", "TOTAL-WEIGHT-STEELWORK"),
+                ("UNIT-WEIGHT-INSULATION", "TOTAL-WEIGHT-INSULATION"),
+            ):
+                if abs(note_qty * self._note_weight(note, unit_tag) - self._note_weight(note, total_tag)) > 0.0001:
+                    self.error_drawing.er32['boolean_value'] = True
+
+            if note_qty != note_qty2 or note_qty != note_qty3:
+                self.error_drawing.er33['boolean_value'] = True
+
+        insulation_notes = self.single_weight_insulation_note + self.weight_breakdown_insulation_note
+        volume_units = ("m3", "m³")
+
+        # Com Insulation, a Lista de Materiais traz itens em m³ que só entram no peso com Insulation
+        bom_weight_sum = 0.0
+        bom_steelwork_weight_sum = 0.0
+        for block in self.material_blocks:
+            weight = float(block["WEI"]["value"])
+            bom_weight_sum += weight
+
+            if not (insulation_notes and block["UNI"]["value"].strip().lower() in volume_units):
+                bom_steelwork_weight_sum += weight
 
         note_unit_weight_sum = sum(
-            float(note["UNIT-WEIGHT"]["value"].replace("kg", "").strip())
+            self._note_weight(note, "UNIT-WEIGHT")
             for note in (self.single_weight_note + self.weight_breakdown_note)
         )
+        note_unit_weight_sum += sum(
+            self._note_weight(note, "UNIT-WEIGHT-STEELWORK")
+            for note in insulation_notes
+        )
 
-        if abs(bom_weight_sum - note_unit_weight_sum) > 0.0001:
+        if abs(bom_steelwork_weight_sum - note_unit_weight_sum) > 0.0001:
             self.error_drawing.er34["boolean_value"] = True
+
+        if insulation_notes:
+            # Notas sem Insulation entram com o peso comum, as com Insulation com o peso incluindo rock-wool
+            note_unit_weight_insulation_sum = sum(
+                self._note_weight(note, "UNIT-WEIGHT")
+                for note in (self.single_weight_note + self.weight_breakdown_note)
+            ) + sum(
+                self._note_weight(note, "UNIT-WEIGHT-INSULATION")
+                for note in insulation_notes
+            )
+
+            if abs(bom_weight_sum - note_unit_weight_insulation_sum) > 0.0001:
+                self.error_drawing.er34["boolean_value"] = True
 
     # Função para verificar os materiais das notas
     def check_notes_material(self):
