@@ -225,7 +225,7 @@ class Drawing:
             found_value = self.subtitle_block[field]['value'].strip()
             if found_value != expected_value:
                 self.error_drawing.er44['boolean_value'] = True
-                self.error_drawing.er44['description'] += f'\t\t\t{field}: Desenho=`{expected_value}` | DB=`{found_value}`\n'
+                self.error_drawing.er44['description'] += f'\t\t\t{field}: Desenho=`{found_value}` | DB=`{expected_value}`\n'
 
     # Função para verificar as informações do Bloco de Título do Desenho
     def check_subtitle_block(self):
