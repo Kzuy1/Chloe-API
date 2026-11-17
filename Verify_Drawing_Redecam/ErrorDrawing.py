@@ -1,56 +1,87 @@
 import os
 
 
-class ErrorDrawing: 
-    def __init__(self):
-        self.er01 = {'description': ':lady_beetle: Error 01: O nome arquivo não está separado corretamente.','boolean_value': False }
-        self.er02 = {'description': ':lady_beetle: Error 02: Bloco de Legenda está com código errado.','boolean_value': False }
-        self.er03 = {'description': ':lady_beetle: Error 03: Bloco de Legenda está com escala errado.','boolean_value': False }
-        self.er04 = {'description': ':lady_beetle: Error 04: Bloco de Revisão atual está com revisão de pares incorreta.','boolean_value': False }
-        self.er05 = {'description': ':lady_beetle: Error 05: A Revisão de Pares do Bloco de Revisão 0 deve ser igual ao Bloco de Título.','boolean_value': False }
-        self.er06 = {'description': ':lady_beetle: Error 06: LTScale está diferente da metade da Escala do Desenho.','boolean_value': False }
-        self.er07 = {'description': ':lady_beetle: Error 07: Camadas obsoletas presentes no desenho:\n','boolean_value': False }
-        self.er08 = {'description': ':lady_beetle: Error 08: Linhas de Chamada ou Cotas não estão na camada `QUOTE`.','boolean_value': False }
-        self.er09 = {'description': ':lady_beetle: Error 09: Lista de blocos duplicados identificados no desenho:','boolean_value': False }
-        self.er10 = {'description': ':lady_beetle: Error 10: Bloco de Revisão 0 está com a Data diferente da Data de Emissão no Bloco de Legenda.','boolean_value': False }
-        self.er11 = {'description': ':lady_beetle: Error 11: Bloco de Revisão atual está com a Data diferente da Data de Revisão no Bloco de Legenda.','boolean_value': False }
-        self.er12 = {'description': ':lady_beetle: Error 12: Bloco de Revisão atual não está preenchido.','boolean_value': False }
-        self.er13 = {'description': ':lady_beetle: Error 13: Bloco de Legenda/Revisão não está com data de ','boolean_value': False }
-        self.er14 = {'description': ':lady_beetle: Error 14: As camadas do desenho não estão configuradas corretamente.','boolean_value': False }
-        self.er15 = {'description': ':lady_beetle: Error 15: Peso no Bloco de Peça com vírgula.','boolean_value': False }
-        self.er16 = {'description': ':lady_beetle: Error 16: Bloco de Peça com peso não batendo a multiplicação.','boolean_value': False }
-        self.er17 = {'description': ':lady_beetle: Error 17: Bloco de Legenda deve estar aprovado em branco.','boolean_value': False }
-        self.er18 = {'description': ':lady_beetle: Error 18: Nota com Código de Identificação das peças diferente do Código do Desenho.','boolean_value': False }
-        self.er19 = {'description': ':lady_beetle: Error 19: Bloco de Peça com código incorreto.','boolean_value': False }
-        # self.er20 = {'description': ':lady_beetle: Error 20: Nota com Peso Aproximado está diferente da Soma dos Blocos de Peça, correto: ','boolean_value': False }
-        self.er21 = {'description': ':lady_beetle: Error 21: Cota com linha fora do Por Camada:\n','boolean_value': False }
-        self.er22 = {'description': ':lady_beetle: Error 22: Cota com escala global incorreta:\n','boolean_value': False }
-        self.er23 = {'description': ':lady_beetle: Error 23: Fator de Escala ou Nome da cota incorreta:\n','boolean_value': False }
-        self.er24 = {'description': ':lady_beetle: Error 24: Bloco de Formato não está na origem (0,0,0).','boolean_value': False }
-        self.er25 = {'description': ':lady_beetle: Error 25: Cota com Passo x Quantidade divergente da Dimensão.','boolean_value': False }
-        self.er26 = {'description': ':lady_beetle: Error 26: Lista de Blocos na escala errada:\n','boolean_value': False }
-        self.er27 = {'description': ':lady_beetle: Error 27: Lista de Blocos na versão antiga:\n','boolean_value': False }
-        self.er28 = {'description': ':lady_beetle: Error 28: Marcas encontradas no desenho, mas ausente na Lista de Peças:\n','boolean_value': False }
-        self.er29 = {'description': ':lady_beetle: Error 29: Bloco de Legenda com descrição no TIT-2 ou TIT-4.','boolean_value': False }
-        self.er30 = {'description': ':lady_beetle: Error 30: Estilos de fonte de texto inválidos vindos do extraído.','boolean_value': False }
-        self.er31 = {'description': ':lady_beetle: Error 31: As configurações padrão do desenho estão incorretas. Layer atual deve ser "0" e o estilo de cota deve corresponder à escala do desenho.','boolean_value': False }
-        self.er32 = {'description': ':lady_beetle: Error 32: Notas do Peso das Peças com peso total divergente da multiplicação','boolean_value': False }
-        self.er33 = {'description': ':lady_beetle: Error 33: Notas do Peso das Peças com quantidades divergentes.','boolean_value': False }
-        self.er34 = {'description': ':lady_beetle: Error 34: Soma dos pesos unitários das Notas do Peso das Peças divergente do peso da Lista de Materiais.','boolean_value': False }
-        self.er35 = {'description': ':lady_beetle: Error 35: Materiais das notas "SHEET MATERIAL" ou "PROFILES MATERIAL" divergentes da Lista de Materiais.','boolean_value': False }
-        self.er36 = {'description': ':lady_beetle: Error 36: O desenho contém referências a outro projeto:\n','boolean_value': False }
-        self.er37 = {'description': ':lady_beetle: Error 37: Bloco de Legenda com descrição incorreta no TIT-3 para o tipo de documento.\n','boolean_value': False }
-        self.er38 = {'description': ':lady_beetle: Error 38: Bloco comercial com código não prenchido ou incorreto:\n','boolean_value': False }
-        self.er39 = {'description': ':lady_beetle: Error 39: Bloco comercial preenchido incorretamente:\n','boolean_value': False }
-        self.er40 = {'description': ':lady_beetle: Error 40: Bloco de Indicação de Revisão divergente da revisão esperada.','boolean_value': False }
-        self.er41 = {'description': ':lady_beetle: Error 41: Nuvem de Revisão não está na camada `NOTE`. Camadas encontradas:\n','boolean_value': False }
-        self.er42 = {'description': ':lady_beetle: Error 42: Nuvem de Revisão com comprimento do arco incorreto.','boolean_value': False }
-        self.er43 = {'description': ':lady_beetle: Error 43: Notas obsoletas presentes no desenho.','boolean_value': False }
-        self.er44 = {'description': ':lady_beetle: Error 44: Bloco de Legenda com descrições divergentes do projeto:\n','boolean_value': False }
-        self.al01 = {'description': ':lady_beetle: Alert 01: Quantidade de peças diverge do número de Marcas no desenho:\n','boolean_value': False }
+# Catálogo de erros, a ordem aqui é a ordem em que aparecem na resposta
+ERRORS = {
+    'ER01': 'O nome arquivo não está separado corretamente.',
+    'ER02': 'Bloco de Legenda está com código errado.',
+    'ER03': 'Bloco de Legenda está com escala errado.',
+    'ER04': 'Bloco de Revisão atual está com revisão de pares incorreta.',
+    'ER05': 'A Revisão de Pares do Bloco de Revisão 0 deve ser igual ao Bloco de Título.',
+    'ER06': 'LTScale está diferente da metade da Escala do Desenho.',
+    'ER07': 'Camadas obsoletas presentes no desenho.',
+    'ER08': 'Linhas de Chamada ou Cotas não estão na camada QUOTE.',
+    'ER09': 'Lista de blocos duplicados identificados no desenho.',
+    'ER10': 'Bloco de Revisão 0 está com a Data diferente da Data de Emissão no Bloco de Legenda.',
+    'ER11': 'Bloco de Revisão atual está com a Data diferente da Data de Revisão no Bloco de Legenda.',
+    'ER12': 'Bloco de Revisão atual não está preenchido.',
+    'ER13': 'Bloco de Legenda/Revisão não está com a data informada.',
+    'ER14': 'As camadas do desenho não estão configuradas corretamente.',
+    'ER15': 'Peso no Bloco de Peça com vírgula.',
+    'ER16': 'Bloco de Peça com peso não batendo a multiplicação.',
+    'ER17': 'Bloco de Legenda deve estar aprovado em branco.',
+    'ER18': 'Nota com Código de Identificação das peças diferente do Código do Desenho.',
+    'ER19': 'Bloco de Peça com código incorreto.',
+    # 'ER20': 'Nota com Peso Aproximado está diferente da Soma dos Blocos de Peça.',
+    'ER21': 'Cota com linha fora do Por Camada.',
+    'ER22': 'Cota com escala global incorreta.',
+    'ER23': 'Fator de Escala ou Nome da cota incorreta.',
+    'ER24': 'Bloco de Formato não está na origem (0,0,0).',
+    'ER25': 'Cota com Passo x Quantidade divergente da Dimensão.',
+    'ER26': 'Lista de Blocos na escala errada.',
+    'ER27': 'Lista de Blocos na versão antiga.',
+    'ER28': 'Marcas encontradas no desenho, mas ausente na Lista de Peças.',
+    'ER29': 'Bloco de Legenda com descrição no TIT-2 ou TIT-4.',
+    'ER30': 'Estilos de fonte de texto inválidos vindos do extraído.',
+    'ER31': 'As configurações padrão do desenho estão incorretas. Layer atual deve ser "0" e o estilo de cota deve corresponder à escala do desenho.',
+    'ER32': 'Notas do Peso das Peças com peso total divergente da multiplicação.',
+    'ER33': 'Notas do Peso das Peças com quantidades divergentes.',
+    'ER34': 'Soma dos pesos unitários das Notas do Peso das Peças divergente do peso da Lista de Materiais.',
+    'ER35': 'Materiais das notas "SHEET MATERIAL" ou "PROFILES MATERIAL" divergentes da Lista de Materiais.',
+    'ER36': 'O desenho contém referências a outro projeto.',
+    'ER37': 'Bloco de Legenda com descrição incorreta no TIT-3 para o tipo de documento.',
+    'ER38': 'Bloco comercial com código não prenchido ou incorreto.',
+    'ER39': 'Bloco comercial preenchido incorretamente.',
+    'ER40': 'Bloco de Indicação de Revisão divergente da revisão esperada.',
+    'ER41': 'Nuvem de Revisão não está na camada NOTE.',
+    'ER42': 'Nuvem de Revisão com comprimento do arco incorreto.',
+    'ER43': 'Notas obsoletas presentes no desenho.',
+    'ER44': 'Bloco de Legenda com descrições divergentes do projeto.',
+    'ALI01': 'Quantidade de peças diverge do número de Marcas no desenho.',
+}
 
-    # self.erXX = {'description': ':lady_beetle: Error XX: XXXXXXXXX','boolean_value': False }
-        
+# 'ERXX': 'XXXXXXXXX',
+
+
+class ErrorDrawing:
+    def __init__(self):
+        self._details = {}
+
+    # Marca o erro como encontrado, opcionalmente com um detalhe (camada, bloco, cota...)
+    def add(self, code, detail=None):
+        if code not in ERRORS:
+            raise KeyError(f'Código de erro desconhecido: {code}')
+
+        details = self._details.setdefault(code, [])
+
+        if detail is not None:
+            details.append(str(detail))
+
+    def has(self, code):
+        return code in self._details
+
+    def get_errors(self):
+        return [
+            {
+                'code': code,
+                'level': 'alert' if code.startswith('ALI') else 'error',
+                'message': message,
+                'details': list(self._details[code]),
+            }
+            for code, message in ERRORS.items()
+            if code in self._details
+        ]
+
     # Compila as mensagens de erros numa única só string
     def split_message(self, message, limit):
         messages = []
@@ -71,17 +102,20 @@ class ErrorDrawing:
 
         return messages
 
-
+    # Formato antigo para o Discord, mantido enquanto o bot não lê o `errors`
     def get_error_messages(self):
         discord_limit = int(os.getenv("DISCORD_LIMIT_PATH_MESSAGE"))
 
         full_message = ""
 
-        for error in self.__dict__.values():
-            if not error["boolean_value"]:
-                continue
+        for error in self.get_errors():
+            code = error['code']
+            label = f"Alert {code[3:]}" if error['level'] == 'alert' else f"Error {code[2:]}"
 
-            full_message += error["description"] + "\n"
+            full_message += f":lady_beetle: {label}: {error['message']}\n"
+
+            for detail in error['details']:
+                full_message += f"\t\t\t{detail}\n"
 
         if not full_message:
             return []

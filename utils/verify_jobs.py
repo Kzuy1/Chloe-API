@@ -29,8 +29,10 @@ def _run_verification(full_path, data_issue, verification_type):
     try:
         drawing = Drawing(full_path, data_issue)
         message = drawing.message
+        # Satus ainda não tem o retorno estruturado
+        errors = getattr(drawing, "errors", None)
         del drawing
-        return message
+        return message, errors
     finally:
         gc.collect()
 
@@ -56,7 +58,9 @@ def _on_done(job_id, temp_dir, future):
         job["finished_at"] = time.time()
         job["future"] = None
         try:
-            job["message"] = future.result()
+            message, errors = future.result()
+            job["message"] = message
+            job["result"] = {"errors": errors} if errors is not None else None
             job["status"] = "done"
         except Exception as e:
             job["message"] = str(e)
@@ -77,7 +81,7 @@ def submit_job(full_path, temp_dir, data_issue, verification_type):
 
         job_id = str(uuid.uuid4())
         future = _get_executor().submit(_run_verification, full_path, data_issue, verification_type)
-        _jobs[job_id] = {"future": future, "status": "pending", "message": None, "finished_at": None}
+        _jobs[job_id] = {"future": future, "status": "pending", "message": None, "result": None, "finished_at": None}
 
     future.add_done_callback(lambda f: _on_done(job_id, temp_dir, f))
     return job_id
@@ -92,4 +96,4 @@ def get_job(job_id):
         status = job["status"]
         if status == "pending" and job["future"] is not None and job["future"].running():
             status = "running"
-        return {"status": status, "message": job["message"]}
+        return {"status": status, "message": job["message"], "result": job["result"]}
