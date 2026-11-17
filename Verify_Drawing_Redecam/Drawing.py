@@ -46,6 +46,7 @@ class Drawing:
         
 
         if self.has_multiple_blocks():
+            self.errors = self.error_drawing.get_errors()
             self.message = self.error_drawing.get_error_messages()
             return
 
@@ -76,22 +77,21 @@ class Drawing:
         self.check_revision_clouds()
         self.check_blocks_notes()
 
+        self.errors = self.error_drawing.get_errors()
         self.message = self.error_drawing.get_error_messages()
     
     def has_multiple_blocks(self) -> bool:
         if len(self.subtitle_block) != 1:
-            self.error_drawing.er09['boolean_value'] = True
-            self.error_drawing.er09['description'] += '\nBloco de Legenda'
+            self.error_drawing.add("ER09", 'Bloco de Legenda')
         
         if len(self.format_block) != 1:
-            self.error_drawing.er09['boolean_value'] = True
-            self.error_drawing.er09['description'] += '\nBloco de Formato'
+            self.error_drawing.add("ER09", 'Bloco de Formato')
         
-        if self.error_drawing.er09['boolean_value'] == False:
+        if not self.error_drawing.has("ER09"):
             self.subtitle_block = self.subtitle_block[0]
             self.format_block = self.format_block[0]
         
-        return self.error_drawing.er09['boolean_value']
+        return self.error_drawing.has("ER09")
     
     # Função para converter o arquivo
     def convert_to_dxf(self):
@@ -197,7 +197,7 @@ class Drawing:
                 line_type != default_layer.line_type or 
                 line_weight != default_layer.line_weight or
                 true_color is not None):
-                    self.error_drawing.er14['boolean_value'] = True
+                    self.error_drawing.add("ER14")
                     return
 
     # Função para verificar se está separado certo o codigo
@@ -205,7 +205,7 @@ class Drawing:
         regex_code = r'^[A-Z0-9]{7}(\.[0-9]+)?(-[A-Z0-9-]+)?_[A-Z]{3}-[0-9]{3}_[0-9]{2}$'
 
         if not re.match(regex_code, self.file_drawing_code):
-            self.error_drawing.er01['boolean_value'] = True
+            self.error_drawing.add("ER01")
 
     # Compara CUS, SIT, PRT e EQU do Bloco de Título com o cadastro do projeto
     def check_title_block_registry(self):
@@ -215,17 +215,16 @@ class Drawing:
             self.subtitle_block['ITESIN']['value'],
         )
         if expected is None:
-            self.error_drawing.er44['boolean_value'] = True
-            self.error_drawing.er44['description'] += (
-                f"\t\t\tNão foi possível verificar: cadastro não encontrado para "
+            self.error_drawing.add(
+                "ER44",
+                f"Não foi possível verificar: cadastro não encontrado."
             )
             return
 
         for field, expected_value in expected.items():
             found_value = self.subtitle_block[field]['value'].strip()
             if found_value != expected_value:
-                self.error_drawing.er44['boolean_value'] = True
-                self.error_drawing.er44['description'] += f'\t\t\t{field}: Desenho=`{found_value}` | DB=`{expected_value}`\n'
+                self.error_drawing.add("ER44", f'{field}: Desenho={found_value} | DB={expected_value}')
 
     # Função para verificar as informações do Bloco de Título do Desenho
     def check_subtitle_block(self):
@@ -237,90 +236,88 @@ class Drawing:
             "MGV": "STANDARD DRAWING",
         }
         
-        if not self.error_drawing.er01['boolean_value']:
+        if not self.error_drawing.has("ER01"):
             if self.subtitle_block['SIN']['value'] == '':
                 code_drawing_sin = ""
             else:
                 code_drawing_sin = "-" + self.subtitle_block['SIN']['value']
 
             if self.subtitle_block['FROM-DWG']['value'] + '_' + self.subtitle_block['REV']['value'] != self.file_drawing_code:
-                self.error_drawing.er02['boolean_value'] = True
+                self.error_drawing.add("ER02")
             
             if self.subtitle_block['COMBOFIELD1']['value'] + code_drawing_sin + '_' + self.subtitle_block['DOC']['value'] + '-' + self.subtitle_block['NUM']['value'] != self.subtitle_block['FROM-DWG']['value']:
-                self.error_drawing.er02['boolean_value'] = True
+                self.error_drawing.add("ER02")
 
             join_combofield = self.subtitle_block['PRN']['value'] + self.subtitle_block['LIN']['value']
             if self.subtitle_block['ITE']['value']:
                 join_combofield += '-' + self.subtitle_block['ITE']['value']
             if join_combofield != self.subtitle_block['COMBOFIELD1']['value']:
-                self.error_drawing.er02['boolean_value'] = True
+                self.error_drawing.add("ER02")
 
             join_itemsin = self.subtitle_block['ITE']['value']
             if self.subtitle_block['SIN']['value']:
                 join_itemsin += '-' + self.subtitle_block['SIN']['value']
             if join_itemsin != self.subtitle_block['ITESIN']['value']:
-                self.error_drawing.er02['boolean_value'] = True
+                self.error_drawing.add("ER02")
 
             self.check_title_block_registry()
 
         # Verifica se o TIT-2 e TIT-4 está vazio
         if self.subtitle_block['TIT-2']['value'] != '' or self.subtitle_block['TIT-4']['value'] != '':
-            self.error_drawing.er29['boolean_value'] = True
+            self.error_drawing.add("ER29")
 
         # Verifica se o TIT-3 está preenchido corretamente
         expected_title = expected_titles.get(self.subtitle_block['DOC']['value'])
         
         if self.subtitle_block['TIT-3']['value'] != expected_title and expected_title is not None:
-            self.error_drawing.er37["boolean_value"] = True
-            self.error_drawing.er37["description"] += f'\t\t\tEsperado: {expected_title}\n'
+            self.error_drawing.add("ER37", f'Esperado: {expected_title}')
 
         # Verifica se a escala condiz com o que está escrito
         scale_subtitle = self.subtitle_block['SCA']['value']
         if scale_subtitle in ('', "1:XX") or abs(float(scale_subtitle.replace("1:", "")) - self.subtitle_block['x_scale']) > 0.0001:
-            self.error_drawing.er03['boolean_value'] = True
+            self.error_drawing.add("ER03")
 
     # Função para verificar Escala dos Blocos de Revisão
     def check_revision_block(self):
         # Verifica se existe bloco de revisão correspondente a quantidade de revisões
         if len(self.revision_blocks) < int(self.file_drawing_code_separate[-1]) + 1:
-            self.error_drawing.er12['boolean_value'] = True
+            self.error_drawing.add("ER12")
             return
 
         # Verifica Bloco de Revisão até última Revisão se está Preenchido
         current_review_block = self.revision_blocks[int(self.file_drawing_code_separate[-1])]
         for attribs in current_review_block.values():
             if isinstance(attribs, dict) and attribs['value'] == '':
-                self.error_drawing.er12['boolean_value'] = True
+                self.error_drawing.add("ER12")
                 return
 
         # Verifica se a data Bloco de Revisão 0 é o mesmo no Bloco de Legenda da Data de Emissão
         if self.revision_blocks[0]['REV-D']['value'] != self.subtitle_block['DAT']['value']:
-            self.error_drawing.er10['boolean_value'] = True
+            self.error_drawing.add("ER10")
 
         # Verifica se a data Bloco de Revisão N é o mesmo no Bloco de Legenda da Data de Revisão
         if self.revision_blocks[int(self.file_drawing_code_separate[-1])]['REV-D']['value'] != self.subtitle_block['D-REV']['value']:
-            self.error_drawing.er11['boolean_value'] = True
+            self.error_drawing.add("ER11")
         
         # Verifica se a data da revisão atual do desenho condiz com a Date de Emissão do Usuário, Padrão: Data de Hoje
         if self.revision_blocks[int(self.file_drawing_code_separate[-1])]['REV-D']['value'] != self.data_issue:
-            self.error_drawing.er13['boolean_value'] = True
-            self.error_drawing.er13['description'] += self.data_issue
+            self.error_drawing.add("ER13", self.data_issue)
 
         # Verificar a revisão de pares está atribuída em 'EMB' e 'VOL'
         if self.revision_blocks[int(self.file_drawing_code_separate[-1])]['MOD']['value'].strip().upper() != 'EMB' or \
            self.revision_blocks[int(self.file_drawing_code_separate[-1])]['APP']['value'].strip().upper() != 'VOL':
-            self.error_drawing.er04['boolean_value'] = True
+            self.error_drawing.add("ER04")
 
         # Verificar se revisão de pares do Bloco 0 está igual ao Bloco de Título
         if any([
             self.revision_blocks[0]['MOD']['value'] != self.subtitle_block['DRA']['value'],
             self.revision_blocks[0]['APP']['value'] != self.subtitle_block['CON']['value'],
         ]):
-            self.error_drawing.er05['boolean_value'] = True
+            self.error_drawing.add("ER05")
         
         # Verifica se o Aprovado do Bloco de Legenda está em branco
         if self.subtitle_block['APP']['value'] != '':
-            self.error_drawing.er17['boolean_value'] = True
+            self.error_drawing.add("ER17")
 
     # Função para verificar códigos das notas de marcação
     def check_mark(self):
@@ -331,7 +328,7 @@ class Drawing:
                 continue
 
             if not entity.dxf.text.startswith(expected_code_part):
-                self.error_drawing.er18['boolean_value'] = True
+                self.error_drawing.add("ER18")
                 return
 
     # Função para verficar Blocos de Peças
@@ -342,7 +339,7 @@ class Drawing:
             if ',' in part_block["QTY"]['value'] or \
                 ',' in part_block["WEIGHT"]['value'] or \
                 ',' in part_block["TOTAL"]['value']:
-                self.error_drawing.er15['boolean_value'] = True
+                self.error_drawing.add("ER15")
 
             # Verifica se a multiplicação do peso bate
             part_qty = float(part_block["QTY"]['value'])
@@ -350,12 +347,12 @@ class Drawing:
             part_total_weight = float(part_block["TOTAL"]['value'])
             
             if abs(part_qty * part_weight - part_total_weight) > 0.0001:
-                self.error_drawing.er16['boolean_value'] = True
+                self.error_drawing.add("ER16")
 
             # Verifica se código da peça está correto
             expected_code_part = self.subtitle_block["PRN"]["value"] + self.subtitle_block["LIN"]["value"] + '-' + self.subtitle_block['ITE']["value"] + '-' + part_block["MARK"]['value']
             if not part_block["CODE"]['value'].startswith(expected_code_part):
-                self.error_drawing.er19['boolean_value'] = True
+                self.error_drawing.add("ER19")
 
     # Função para verificar se todos os Blocos de Peças estão indicados
     def check_part_indicate_quantity(self):
@@ -383,26 +380,24 @@ class Drawing:
         for mark, qty in parts_dict.items():
             mark_count = mark_dict.get(mark, 0)
             if mark_count != qty:
-                self.error_drawing.al01['boolean_value'] = True
-                self.error_drawing.al01['description'] += f'\t\t\t{mark}: {qty} | Marca: {mark_count}\n'
+                self.error_drawing.add("ALI01", f'{mark}: {qty} | Marca: {mark_count}')
         
         for mark in mark_dict:
             if mark not in parts_dict:
-                self.error_drawing.er28['boolean_value'] = True
-                self.error_drawing.er28['description'] += f'\t\t\t{mark}\n'
+                self.error_drawing.add("ER28", f'{mark}')
 
     # Função para verificar o LTScale
     def check_line_scale_factor(self):
         ltscale = self.doc_dxf.header['$LTSCALE']
 
         if abs(self.subtitle_block['x_scale']/2 - ltscale) > 0.0001  :
-            self.error_drawing.er06['boolean_value'] = True
+            self.error_drawing.add("ER06")
 
     # Função para verificar as linhas de chamadas e Dimensões
     def check_dimensions(self):
         for entity in self.msp_dxf.query('DIMENSION LEADER'):
             if entity.dxf.layer != 'QUOTE':
-                self.error_drawing.er08['boolean_value'] = True
+                self.error_drawing.add("ER08")
                 return
     
     # Função para verificar as especificações da Cotas
@@ -416,20 +411,17 @@ class Drawing:
             
             # Verifica se o Estilo de Cota está no PorCamada
             if dim_style.dxf.dimclrd != 256 or dim_style.dxf.dimclre != 256:
-                self.error_drawing.er21['boolean_value'] = True
-                self.error_drawing.er21['description'] += f'\t\t\t{dim_name}\n'
+                self.error_drawing.add("ER21", f'{dim_name}')
 
             # Verifica se a Escala da Cota está no padrão do formato
             if  abs(self.subtitle_block['x_scale'] - dim_style.dxf.dimscale) > 0.0001:
-                self.error_drawing.er22['boolean_value'] = True
-                self.error_drawing.er22['description'] += f'\t\t\t{dim_name}\n'
+                self.error_drawing.add("ER22", f'{dim_name}')
 
             # Verifica o fator de Escada da Cota está correto
             scale_factor = round(dim_style.dxf.dimlfac * self.subtitle_block['x_scale'], 1)
             scale_factor = re.sub(r'\b(\d+)\.0\b', r'\1', str(scale_factor))
             if scale_factor not in dim_style.dxf.name:
-                self.error_drawing.er23['boolean_value'] = True
-                self.error_drawing.er23['description'] += f'\t\t\t{dim_name}\n'
+                self.error_drawing.add("ER23", f'{dim_name}')
 
     def check_format_block_at_origin(self):
         if (
@@ -437,7 +429,7 @@ class Drawing:
             self.format_block['y_position'],
             self.format_block['z_position'],
         ) != (0, 0, 0): 
-            self.error_drawing.er24['boolean_value'] = True
+            self.error_drawing.add("ER24")
 
     def _get_dimension_suffix(self, dim):
         if dim.dxf.text:
@@ -472,7 +464,7 @@ class Drawing:
             tolerance = 1.15
 
             if abs(result - measured) > tolerance:
-                self.error_drawing.er25['boolean_value'] = True
+                self.error_drawing.add("ER25")
                 return
     
     # Função para verificar escala dos blocos
@@ -515,13 +507,13 @@ class Drawing:
             blocks_checked.add(block_name)
 
             if error == BlockScaleError.MIRRORED:
-                self._concat_block_error(self.error_drawing.er26, block.name, block.description, "Bloco espelhado")
+                self._concat_block_error("ER26", block.name, block.description, "Bloco espelhado")
 
             if error == BlockScaleError.SCALED:
-                self._concat_block_error(self.error_drawing.er26, block.name, block.description, "Escala incorreta")
+                self._concat_block_error("ER26", block.name, block.description, "Escala incorreta")
 
             if error == BlockScaleError.ROTATED:
-                self._concat_block_error(self.error_drawing.er26, block.name, block.description, "Rotação incorreta")
+                self._concat_block_error("ER26", block.name, block.description, "Rotação incorreta")
 
     # Função para verificar se um bloco existe no Desenho
     def _check_block_exists(self, blockName):
@@ -529,9 +521,8 @@ class Drawing:
         return block is not None
 
     # Função adicionar nome do Bloco e Descrição no Error
-    def _concat_block_error(self, error: dict, block_name: str, block_description: str, error_description: str):
-        error['boolean_value'] = True
-        error['description'] += f'\t\t\t{block_name} - {block_description} - {error_description}\n'
+    def _concat_block_error(self, code: str, block_name: str, block_description: str, error_description: str):
+        self.error_drawing.add(code, f'{block_name} - {block_description} - {error_description}')
     
     # Função para verificar as versões dos blocos pelo nome
     def check_version_blocks_by_name(self):
@@ -540,7 +531,7 @@ class Drawing:
 
         for block in blocks_to_check_by_name.blocks:
             if self._check_block_exists(block.name):
-                self._concat_block_error(self.error_drawing.er27, block.name, block.description, "Bloco antigo")
+                self._concat_block_error("ER27", block.name, block.description, "Bloco antigo")
 
     def inspect_block(self, block_name: str, expected: Entity) -> bool:
         block = self.doc_dxf.blocks.get(block_name)
@@ -571,15 +562,14 @@ class Drawing:
 
         for block in blocks_to_check_by_entity.blocks:
             if not self.inspect_block(block.name, block.entity):
-                self._concat_block_error(self.error_drawing.er27, block.name, block.description, "Bloco antigo")
+                self._concat_block_error("ER27", block.name, block.description, "Bloco antigo")
 
     # Função para verificar Layer antigas
     def check_older_layers(self):
         for layer in self.doc_dxf.layers:
             layer_name = layer.dxf.name
             if layer_name in old_layers:
-                self.error_drawing.er07['boolean_value'] = True
-                self.error_drawing.er07['description'] += f'\t\t\t{layer_name}\n'
+                self.error_drawing.add("ER07", f'{layer_name}')
 
     # Função para verificar estilo de fonte do texto
     def check_font_style_text(self):
@@ -590,7 +580,7 @@ class Drawing:
 
             # verifica se contém qualquer termo proibido
             if any(term in style_name for term in disallowed_fonts):
-                self.error_drawing.er30['boolean_value'] = True
+                self.error_drawing.add("ER30")
                 break
     
     # Função para verificar as configurações padrão do desenho
@@ -611,10 +601,10 @@ class Drawing:
         }
 
         if self.doc_dxf.header["$CLAYER"] != layer_default:
-            self.error_drawing.er31['boolean_value'] = True
+            self.error_drawing.add("ER31")
 
         if self.doc_dxf.header["$DIMSTYLE"] not in dimension_defaults:
-            self.error_drawing.er31['boolean_value'] = True
+            self.error_drawing.add("ER31")
     
     # Função para converter o valor de peso da nota (ex: "12.5 kg") em float
     def _note_weight(self, note, tag):
@@ -629,10 +619,10 @@ class Drawing:
             note_total_weight = self._note_weight(note, "TOTAL-WEIGHT")
 
             if abs(note_qty * note_weight - note_total_weight) > 0.0001:
-                self.error_drawing.er32['boolean_value'] = True
+                self.error_drawing.add("ER32")
 
             if note_qty != note_qty2:
-                self.error_drawing.er33['boolean_value'] = True
+                self.error_drawing.add("ER33")
 
         for note in self.weight_breakdown_insulation_note:
             note_qty = float(note["PIECES-REQUIRED1"]['value'])
@@ -644,10 +634,10 @@ class Drawing:
                 ("UNIT-WEIGHT-INSULATION", "TOTAL-WEIGHT-INSULATION"),
             ):
                 if abs(note_qty * self._note_weight(note, unit_tag) - self._note_weight(note, total_tag)) > 0.0001:
-                    self.error_drawing.er32['boolean_value'] = True
+                    self.error_drawing.add("ER32")
 
             if note_qty != note_qty2 or note_qty != note_qty3:
-                self.error_drawing.er33['boolean_value'] = True
+                self.error_drawing.add("ER33")
 
         insulation_notes = self.single_weight_insulation_note + self.weight_breakdown_insulation_note
         volume_units = ("m3", "m³")
@@ -672,7 +662,7 @@ class Drawing:
         )
 
         if abs(bom_steelwork_weight_sum - note_unit_weight_sum) > 0.0001:
-            self.error_drawing.er34["boolean_value"] = True
+            self.error_drawing.add("ER34")
 
         if insulation_notes:
             # Notas sem Insulation entram com o peso comum, as com Insulation com o peso incluindo rock-wool
@@ -685,7 +675,7 @@ class Drawing:
             )
 
             if abs(bom_weight_sum - note_unit_weight_insulation_sum) > 0.0001:
-                self.error_drawing.er34["boolean_value"] = True
+                self.error_drawing.add("ER34")
 
     # Função para verificar os materiais das notas
     def check_notes_material(self):
@@ -726,7 +716,7 @@ class Drawing:
                 profile_material_bom.add(material)
 
         if sheet_material_note != sheet_material_bom or profile_material_note != profile_material_bom:
-            self.error_drawing.er35["boolean_value"] = True
+            self.error_drawing.add("ER35")
 
     # Função para pegar todos os textos do desenho
     def get_all_texts(self):
@@ -763,8 +753,7 @@ class Drawing:
         for text in self.get_all_texts():
             for code in pattern.findall(text):
                 if not code.startswith(expected_project_code):
-                    self.error_drawing.er36["boolean_value"] = True
-                    self.error_drawing.er36["description"] += f"\t\t\tEncontrado: {code}\n"
+                    self.error_drawing.add("ER36", f"Encontrado: {code}")
                     return
 
     # Função para verificar os blocos comerciais
@@ -779,8 +768,7 @@ class Drawing:
         for block_type, blocks in commercial_blocks.items():
             for block in blocks:
                 if not block["CODE"]["value"]:
-                    self.error_drawing.er38["boolean_value"] = True
-                    self.error_drawing.er38["description"] += f"\t\t\t{block['MARK']['value']} - {block['DESCL1']['value']}\n"
+                    self.error_drawing.add("ER38", f"{block['MARK']['value']} - {block['DESCL1']['value']}")
                     continue
 
                 article = self.db_articoli.get_article(
@@ -789,8 +777,7 @@ class Drawing:
                     )
 
                 if article is None:
-                    self.error_drawing.er38["boolean_value"] = True
-                    self.error_drawing.er38["description"] += f"\t\t\t{block['MARK']['value']} - {block['DESCL1']['value']}\n"
+                    self.error_drawing.add("ER38", f"{block['MARK']['value']} - {block['DESCL1']['value']}")
                     continue
 
                 article_by_block = self.db_articoli.normalize_article(article, block["QTY"]["value"], block_type)
@@ -811,14 +798,13 @@ class Drawing:
                         equal = str(block_value).strip() == str(value).strip()
 
                     if not equal:
-                        self.error_drawing.er39["boolean_value"] = True
-
-                        self.error_drawing.er39["description"] += (
-                            f"\t\t\t{block['MARK']['value']} - "
-                            f"{block['DESCL1']['value']}\n"
-                            f"\t\t\t\t{attribute}: "
-                            f"Desenho=`{block[attribute]['value']}` | "
-                            f"DB=`{value}`\n"
+                        self.error_drawing.add(
+                            "ER39",
+                            f"{block['MARK']['value']} - "
+                            f"{block['DESCL1']['value']} - "
+                            f"{attribute}: "
+                            f"Desenho={block[attribute]['value']} | "
+                            f"DB={value}"
                         )
 
                         break
@@ -827,7 +813,7 @@ class Drawing:
     def check_revision_indication_blocks(self):
         for block in self.revision_indication_blocks:
             if int(block["REV"]["value"]) != int(self.file_drawing_code_separate[-1]):
-                self.error_drawing.er40["boolean_value"] = True
+                self.error_drawing.add("ER40")
 
     # Função para verificar Nuvens de Revisão
     def check_revision_clouds(self):
@@ -839,17 +825,16 @@ class Drawing:
             if not revcloud.is_revcloud(polyline): 
                 continue
 
-            if self.error_drawing.er41["boolean_value"] and self.error_drawing.er42["boolean_value"]:
+            if self.error_drawing.has("ER41") and self.error_drawing.has("ER42"):
                 break
 
             if (
                 polyline.dxf.layer.upper() != revision_cloud_layer 
-                and self.error_drawing.er41["boolean_value"] != True
+                and not self.error_drawing.has("ER41")
             ):
-                self.error_drawing.er41["boolean_value"] = True
-                self.error_drawing.er41["description"] += f"\t\t\t{polyline.dxf.layer}\n"
+                self.error_drawing.add("ER41", f"{polyline.dxf.layer}")
                 
-            if self.error_drawing.er42["boolean_value"] != True:
+            if not self.error_drawing.has("ER42"):
                 xdata = polyline.get_xdata("RevcloudProps")
 
                 if xdata:
@@ -859,7 +844,7 @@ class Drawing:
                         continue
 
                     if not math.isclose(expected_arc_length, arc_length, abs_tol=tolerance):
-                        self.error_drawing.er42["boolean_value"] = True
+                        self.error_drawing.add("ER42")
 
     # Verifica se os Blocos de Notas estão presentes no desenho
     def check_blocks_notes(self):
@@ -867,4 +852,4 @@ class Drawing:
 
         for block_name in required_blocks:
             if not self._check_block_exists(block_name):
-                self.error_drawing.er43["boolean_value"] = True
+                self.error_drawing.add("ER43")
